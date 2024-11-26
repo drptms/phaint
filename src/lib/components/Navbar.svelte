@@ -4,12 +4,17 @@
         { href: '/about', label: 'About' },
         { href: '/contact', label: 'Contact' }
     ];
+
+    // TODO
+    function profileClick() {
+        console.log("Clicked!")
+    }
 </script>
 
 <nav class="navbar">
     <!-- Logo Section -->
     <div class="logo-section">
-        <img src="phaint.jpg" alt="Flowbite Logo" class="logo" />
+        <img src="logoPhaint.png" alt="Flowbite Logo" class="logo" />
         <span class="title">Phaint</span>
     </div>
 
@@ -23,7 +28,7 @@
     </ul>
 
     <!-- Profile Section -->
-    <div class="profile-section">
+    <div class="profile-section" on:click={profileClick}>
         <img src="phaint.jpg" alt="Profile Picture" class="profile-pic" />
     </div>
 </nav>
@@ -40,12 +45,12 @@
     .logo-section {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.1rem;
     }
 
     .logo {
-        width: 40px;
-        height: 40px;
+        width: 50px;
+        height: 50px;
     }
 
     .title {
