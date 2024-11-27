@@ -33,6 +33,27 @@ With an intuitive interface and powerful features, Phaint bridges creativity and
    - [ ] Support for templates and reusable elements
    - [ ] Offline mode with automatic synchronization
 
+## 🤝 Collaborating
+
+### Developing
+Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+
+```bash
+npm run dev
+
+# or start the server and open the app in a new browser tab
+npm run dev -- --open
+```
+### Building
+To create a production version of your app:
+
+```bash
+npm run build
+```
+You can preview the production build with `npm run preview`.
+> To deploy your app, you may need to install an adapter for your target environment.
+
+
 ## 🛠️ Installation
 
 ### Prerequisites
@@ -41,17 +62,17 @@ With an intuitive interface and powerful features, Phaint bridges creativity and
 
 ### Getting started
 Clone the repository
-```console
+```bash
 git clone git@github.com:drptms/phaint.git
 cd phaint
 ```
 
 Install dependencies
-```Console
+```bash
 npm install
 ```
 
 Start the application
-```Console
+```bash
 npm run
 ```
