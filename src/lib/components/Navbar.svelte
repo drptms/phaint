@@ -29,7 +29,7 @@
 
     <!-- Profile Section -->
     <div class="profile-section" on:click={profileClick}>
-        <img src="phaint.jpg" alt="Profile Picture" class="profile-pic" />
+        <img src="logoPhaint.png" alt="Profile Picture" class="profile-pic" />
     </div>
 </nav>
 
