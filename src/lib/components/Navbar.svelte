@@ -1,11 +1,10 @@
 <script>
     export let links = [
         { href: '/', label: 'Home' },
-        { href: '/workboard', label: 'My projects'},
+        { href: '/dashboard', label: 'My projects'},
         { href: '/about', label: 'About' },
         { href: '/contact', label: 'Contact' },
     ];
-
     // TODO
     function profileClick() {
         console.log("Clicked!")
