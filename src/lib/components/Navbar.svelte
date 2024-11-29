@@ -1,5 +1,5 @@
 <script>
-	import Modal from "./LoginModal.svelte";
+	import Modal from "./Modal.svelte";
 
     export let links = [
         { href: '/', label: 'Home' },
