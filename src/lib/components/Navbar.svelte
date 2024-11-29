@@ -1,13 +1,17 @@
 <script>
+	import Modal from "./Modal.svelte";
+
     export let links = [
         { href: '/', label: 'Home' },
+        { href: '/5/dashboard', label: 'My projects'},
         { href: '/about', label: 'About' },
-        { href: '/contact', label: 'Contact' }
+        { href: '/contact', label: 'Contact' },
     ];
-
-    // TODO
+    
+    let showModal = false;
     function profileClick() {
-        console.log("Clicked!")
+        showModal = !showModal;
+        console.log(showModal);
     }
 </script>
 
@@ -29,8 +33,10 @@
 
     <!-- Profile Section -->
     <div class="profile-section" on:click={profileClick}>
-        <img src="phaint.jpg" alt="Profile Picture" class="profile-pic" />
+        <img src="logoPhaint.png" alt="Profile Picture" class="profile-pic" />
     </div>
+
+    <Modal bind:showModal/>
 </nav>
 
 <style>
