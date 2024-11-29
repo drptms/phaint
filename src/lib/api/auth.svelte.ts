@@ -1,6 +1,6 @@
 import { error } from "@sveltejs/kit";
 
-async function registerUser(username: string, password: string) {
+export async function registerUser(username: string, password: string) {
     try {
         let response = await fetch(createPostRequest("", JSON.stringify({username: username, password: password})));
         if (!response.ok) {
@@ -14,7 +14,7 @@ async function registerUser(username: string, password: string) {
     }
 }
 
-async function authenticateUser(username: string, password: string) {
+export async function authenticateUser(username: string, password: string) {
     try {
         let response = await fetch(createPostRequest("", JSON.stringify({username: username, password: password})));
         if (!response.ok) {

@@ -16,9 +16,10 @@
 	onclick={(e) => { if (e.target === dialog) dialog.close(); }}
 	 id="loginDialog">
 	<div class="login-modal">
-		<h3>Login</h3>
-		<form id="loginForm" method="POST" action="/login?/login">
+		<h3>Register</h3>
+		<form id="loginForm" method="POST" action="/register?/register">
 			<input type="text" id="username" name="username" placeholder="Username" required />
+            <input type="text" name="mail" id="mail" placeholder="Mail" required>
 			<input type="password" id="password" name="password" placeholder="Password" required />
 
 			<div class="dialog-actions">

@@ -3,7 +3,7 @@
 
     export let links = [
         { href: '/', label: 'Home' },
-        { href: '/dashboard', label: 'My projects'},
+        { href: '/5/dashboard', label: 'My projects'},
         { href: '/about', label: 'About' },
         { href: '/contact', label: 'Contact' },
     ];
