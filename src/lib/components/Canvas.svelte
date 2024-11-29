@@ -11,78 +11,86 @@
 			return
 		}
 		context = canvas.getContext('2d');
-		
-		//window.addEventListener('resize', resize);
-		canvas.width = window.innerWidth;
-		canvas.height = window.innerHeight;
+
+		canvas.width = window.innerWidth - window.innerWidth * 0.05
+		canvas.height = window.innerHeight - window.innerHeight * 0.05
 
 		return
 	});
 </script>
 
-<canvas
-	bind:this={canvas}
-	onpointerdown={(e) => {
-		coords = { x: e.offsetX, y: e.offsetY };
-		if (!context) {
-			return
-		}
-		context.fillStyle = color;
-		context.beginPath();
-		context.arc(coords.x, coords.y, size / 2, 0, 2 * Math.PI);
-		context.fill();
-	}}
-	onpointerleave={() => {
-		coords = null;
-	}}
-	onpointermove={(e) => {
-		const previous = coords;
-
-		coords = { x: e.offsetX, y: e.offsetY };
-
-		if (e.buttons === 1) {
-			e.preventDefault();
-			if (!context || !previous) {
+<div class="container">
+	<canvas
+		bind:this={canvas}
+		onpointerdown={(e) => {
+			coords = { x: e.offsetX, y: e.offsetY };
+			if (!context) {
 				return
 			}
-			context.strokeStyle = color;
-			context.lineWidth = size;
-			context.lineCap = 'round';
+			context.fillStyle = color;
 			context.beginPath();
-			context.moveTo(previous.x, previous.y);
-			context.lineTo(coords.x, coords.y);
-			context.stroke();
-		}
-	}}
-></canvas>
+			context.arc(coords.x, coords.y, size / 2, 0, 2 * Math.PI);
+			context.fill();
+		}}
+		onpointerleave={() => {
+			coords = null;
+		}}
+		onpointermove={(e) => {
+			const previous = coords;
 
-{#if coords}
-	<div
-		class="preview"
-		style="--color: {color}; --size: {size}px; --x: {coords.x}px; --y: {coords.y}px"
-	></div>
-	<p>x: {coords.x}, y: {coords.y}</p>
-{/if}
+			coords = { x: e.offsetX, y: e.offsetY };
+
+			if (e.buttons === 1) {
+				e.preventDefault();
+				if (!context || !previous) {
+					return
+				}
+				context.strokeStyle = color;
+				context.lineWidth = size;
+				context.lineCap = 'round';
+				context.beginPath();
+				context.moveTo(previous.x, previous.y);
+				context.lineTo(coords.x, coords.y);
+				context.stroke();
+			}
+		}}
+	></canvas>
+</div>
+
+<footer>
+	{#if coords}
+		<p>x: {coords?.x}, y: {coords?.y}</p>
+	{/if}
+</footer>
 
 <style>
-	canvas {
-		position: relative;
+
+	footer {
+		bottom: 0;
 		left: 0;
-		top: 5px;
+		height: 5%;
+		position: fixed;
+		background-color: rgb(198, 198, 198);
+		border-top: 2px solid black;
 		width: 100%;
-        background-color: aquamarine;
+	}
+	
+	footer p {
+		margin-left: 1em;
 	}
 
-	.preview {
-		position: absolute;
-		left: var(--x);
-		top: var(--y);
-		width: var(--size);
-		height: var(--size);
-		transform: translate(-50%, -50%);
-		background: var(--color);
-		border-radius: 50%;
-		opacity: 0.5;
-		pointer-events: none;
+	canvas {
+		position: relative;
+		align-self: center;
+		align-content: center;
+		top: 5px;
+		cursor: crosshair;
+		border: 1px solid black;
+		margin-bottom: 5%;
 	}
+
+	.container {
+		text-align: center;
+	}
+
 </style>
