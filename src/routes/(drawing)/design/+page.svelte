@@ -1,6 +1,6 @@
 <script>
 
-    import Canvas from "./Canvas.svelte";
+    import Canvas from "$lib/components/Canvas.svelte";
 	import { selected, brush } from './shared.svelte';
 
 </script>

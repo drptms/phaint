@@ -1,24 +1,22 @@
-<script>
+<script lang="ts">
 	let { color, size } = $props();
+	type Coordinates = {x: number, y: number};
 
-	let canvas = $state();
-	let context = $state();
-	let coords = $state();
+	let canvas: HTMLCanvasElement | undefined = $state();
+	var context: CanvasRenderingContext2D | null | undefined = $state();
+	let coords: Coordinates | undefined | null = $state();
 
 	$effect(() => {
-		context = canvas.getContext('2d');
-
-		function resize() {
-			canvas.width = window.innerWidth;
-			canvas.height = window.innerHeight;
+		if (!canvas) {
+			return
 		}
+		context = canvas.getContext('2d');
+		
+		//window.addEventListener('resize', resize);
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight;
 
-		window.addEventListener('resize', resize);
-		resize();
-
-		return () => {
-			window.removeEventListener('resize', resize);
-		};
+		return
 	});
 </script>
 
@@ -26,7 +24,9 @@
 	bind:this={canvas}
 	onpointerdown={(e) => {
 		coords = { x: e.offsetX, y: e.offsetY };
-
+		if (!context) {
+			return
+		}
 		context.fillStyle = color;
 		context.beginPath();
 		context.arc(coords.x, coords.y, size / 2, 0, 2 * Math.PI);
@@ -42,7 +42,9 @@
 
 		if (e.buttons === 1) {
 			e.preventDefault();
-
+			if (!context || !previous) {
+				return
+			}
 			context.strokeStyle = color;
 			context.lineWidth = size;
 			context.lineCap = 'round';
@@ -59,6 +61,7 @@
 		class="preview"
 		style="--color: {color}; --size: {size}px; --x: {coords.x}px; --y: {coords.y}px"
 	></div>
+	<p>x: {coords.x}, y: {coords.y}</p>
 {/if}
 
 <style>
