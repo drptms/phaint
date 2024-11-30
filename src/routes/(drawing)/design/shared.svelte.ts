@@ -5,3 +5,7 @@ export const selected = $state({
 export const brush = $state({
 	size: 10
 });
+
+export const pages = $state({
+	number: 1
+});

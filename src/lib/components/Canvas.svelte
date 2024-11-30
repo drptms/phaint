@@ -1,10 +1,15 @@
 <script lang="ts">
-	let { color, size } = $props();
+
+	let { color, size, pages = $bindable() } = $props();
 	type Coordinates = {x: number, y: number};
 
 	let canvas: HTMLCanvasElement | undefined = $state();
 	var context: CanvasRenderingContext2D | null | undefined = $state();
 	let coords: Coordinates | undefined | null = $state();
+
+	function showCanvas() {
+		//console.log(canvas?.toDataURL())
+	}
 
 	$effect(() => {
 		if (!canvas) {
@@ -22,6 +27,7 @@
 <div class="container">
 	<canvas
 		bind:this={canvas}
+		onclick="{showCanvas}"
 		onpointerdown={(e) => {
 			coords = { x: e.offsetX, y: e.offsetY };
 			if (!context) {
@@ -37,9 +43,7 @@
 		}}
 		onpointermove={(e) => {
 			const previous = coords;
-
 			coords = { x: e.offsetX, y: e.offsetY };
-
 			if (e.buttons === 1) {
 				e.preventDefault();
 				if (!context || !previous) {
@@ -58,9 +62,18 @@
 </div>
 
 <footer>
-	{#if coords}
-		<p>x: {coords?.x}, y: {coords?.y}</p>
+	<div class="coords">
+		<p>
+			{#if coords}
+				x: {coords?.x}, y: {coords?.y}
+			{/if}
+		</p>
+	</div>
+	{#if pages >= 2}
+		<button onclick={() => pages--}>-</button>
 	{/if}
+	<p class="pages">{pages}</p>
+	<button onclick={() => pages++}>+</button>
 </footer>
 
 <style>
@@ -75,9 +88,21 @@
 		width: 100%;
 	}
 	
-	footer p {
+	footer .coords {
+		display: inline-block;
 		margin-left: 1em;
 	}
+	
+	footer .pages {
+		display: inline-block;
+		margin-left: 1em;
+	}
+	
+	footer button {
+		margin-left: 1em;
+		display: inline-block;
+	}
+
 
 	canvas {
 		position: relative;
