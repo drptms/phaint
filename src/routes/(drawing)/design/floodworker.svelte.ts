@@ -24,19 +24,20 @@ const colorMap: Map<string, Color> = new Map([
     ['white', [255, 255, 255, 255]]
 ]);
 
-const chunks = [-2, -1, 0, 1, 2]
+const chunks = [-1, 0, 1]
 
 type Color = [number, number, number, number];
 type Coordinates = {x: number, y: number};
 
-function colorsMatch(color1: Color, color2: Color): boolean {
+function colorsMatch(color1: Color, color2: Color, chunkSize: number): boolean {
+
     return color1[0] === color2[0] &&
             color1[1] === color2[1] &&
             color1[2] === color2[2] &&
             color1[3] === color2[3];
 }
   
-function performFloodFill(coords: Coordinates, pixels: Uint8ClampedArray, width: number, height: number, color: string, chunkSize = 5) {
+function performFloodFill(coords: Coordinates, pixels: Uint8ClampedArray, width: number, height: number, color: string, chunkSize = 3) {
     const startPos = (coords.y * width + coords.x) * 4;
     const startColor: Color = [
         pixels[startPos],
@@ -50,7 +51,7 @@ function performFloodFill(coords: Coordinates, pixels: Uint8ClampedArray, width:
     if (!fillColor) {
         return
     }
-    if (colorsMatch(fillColor, startColor)) {
+    if (colorsMatch(fillColor, startColor, chunkSize)) {
         return
     }
 
@@ -81,7 +82,7 @@ function performFloodFill(coords: Coordinates, pixels: Uint8ClampedArray, width:
             pixels[index + 3]
         ];
 
-        if (colorsMatch(currentColor, startColor)) {
+        if (colorsMatch(currentColor, startColor, chunkSize)) {
             // Fill the current pixel
             for (let i = 0; i < chunkSize; i++) {
                 for (let j = 0; j < chunkSize; j++) {
@@ -92,6 +93,7 @@ function performFloodFill(coords: Coordinates, pixels: Uint8ClampedArray, width:
                     pixels[index + 3] = fillColor[3];
                 }
             }
+
 
             // Add neighboring pixels to the stack
             if (!visited.has([currentX - chunkSize, currentY]) && currentX > 0) {
@@ -116,7 +118,7 @@ function performFloodFill(coords: Coordinates, pixels: Uint8ClampedArray, width:
                         pixels[index + 2],
                         pixels[index + 3]
                     ];
-                    if (colorsMatch(currentColor, startColor)) {
+                    if (colorsMatch(currentColor, startColor, chunkSize)) {
                         pixels[index] = fillColor[0];
                         pixels[index + 1] = fillColor[1];
                         pixels[index + 2] = fillColor[2];

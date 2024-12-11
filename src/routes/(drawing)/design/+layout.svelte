@@ -38,7 +38,7 @@
 
 		<label>
 			small
-			<input type="range" bind:value={brush.size} min="1" max="50" />
+			<input type="range" bind:value={brush.size} min="5" max="50" />
 			large
 		</label>
 	</div>
