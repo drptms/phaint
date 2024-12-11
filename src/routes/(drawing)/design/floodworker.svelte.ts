@@ -24,6 +24,8 @@ const colorMap: Map<string, Color> = new Map([
     ['white', [255, 255, 255, 255]]
 ]);
 
+const chunks = [-1, 0, 1]
+
 type Color = [number, number, number, number];
 type Coordinates = {x: number, y: number};
 
@@ -34,7 +36,7 @@ function colorsMatch(color1: Color, color2: Color): boolean {
             color1[3] === color2[3];
 }
   
-function performFloodFill(coords: Coordinates, pixels: Uint8ClampedArray, width: number, height: number, color: string) {
+function performFloodFill(coords: Coordinates, pixels: Uint8ClampedArray, width: number, height: number, color: string, chunkSize = 3) {
     const startPos = (coords.y * width + coords.x) * 4;
     const startColor: Color = [
         pixels[startPos],
@@ -81,23 +83,28 @@ function performFloodFill(coords: Coordinates, pixels: Uint8ClampedArray, width:
 
         if (colorsMatch(currentColor, startColor)) {
             // Fill the current pixel
-            pixels[index] = fillColor[0];
-            pixels[index + 1] = fillColor[1];
-            pixels[index + 2] = fillColor[2];
-            pixels[index + 3] = fillColor[3];
+            for (let i = 0; i < chunkSize; i++) {
+                for (let j = 0; j < chunkSize; j++) {
+                    const index = getPixelIndex(currentX + chunks[j], currentY + chunks[i])
+                    pixels[index] = fillColor[0];
+                    pixels[index + 1] = fillColor[1];
+                    pixels[index + 2] = fillColor[2];
+                    pixels[index + 3] = fillColor[3];
+                }
+            }
 
             // Add neighboring pixels to the stack
-            if (!visited.has([currentX - 1, currentY]) && currentX > 0) {
-                stack.push([currentX - 1, currentY]);
+            if (!visited.has([currentX - chunkSize, currentY]) && currentX > 0) {
+                stack.push([currentX - chunkSize, currentY]);
             };
-            if (!visited.has([currentX + 1, currentY]) && currentX < width - 1) {
-                stack.push([currentX + 1, currentY]);
+            if (!visited.has([currentX + chunkSize, currentY]) && currentX < width - 1) {
+                stack.push([currentX + chunkSize, currentY]);
             };
-            if (!visited.has([currentX, currentY - 1]) && currentY > 0) {
-                stack.push([currentX, currentY - 1]); 
+            if (!visited.has([currentX, currentY - chunkSize]) && currentY > 0) {
+                stack.push([currentX, currentY - chunkSize]); 
             };
-            if (!visited.has([currentX, currentY + 1]) && currentY < height - 1) {
-                stack.push([currentX, currentY + 1]); 
+            if (!visited.has([currentX, currentY + chunkSize]) && currentY < height - 1) {
+                stack.push([currentX, currentY + chunkSize]); 
             };
         }
     }
