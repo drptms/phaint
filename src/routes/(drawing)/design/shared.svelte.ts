@@ -13,3 +13,7 @@ export const brush = $state({
 export const pages = $state({
 	number: 1
 });
+
+export const selectionMode = $state({
+	active: false
+});

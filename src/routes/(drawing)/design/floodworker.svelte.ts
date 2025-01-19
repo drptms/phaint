@@ -58,6 +58,12 @@ function performFloodFill(coords: Coordinates, pixels: Uint8ClampedArray, width:
     const stack: [number, number][] = [[coords.x, coords.y]];
     const visited: Set<[number, number]> = new Set();  // Track visited pixels
 
+    /**
+     * Retrieves the index in the pixel buffer based on the given coordinates (x, y).
+     * @param x The X coordinate of the pixel
+     * @param y The Y coordinate of the pixel
+     * @returns The corresponding index in the pixel buffer
+     */
     const getPixelIndex = (x: number, y: number): number => {
         return (y * width + x) * 4;
     }
@@ -82,11 +88,17 @@ function performFloodFill(coords: Coordinates, pixels: Uint8ClampedArray, width:
             pixels[index + 3]
         ];
 
+        /**
+         * If colors match, this block will fill each pixel within the specified chunkSize.
+         */
         if (colorsMatch(currentColor, startColor, chunkSize)) {
             // Fill the current pixel
             for (let i = 0; i < chunkSize; i++) {
                 for (let j = 0; j < chunkSize; j++) {
-                    const index = getPixelIndex(currentX + chunks[j], currentY + chunks[i])
+                    // Compute the index for the pixel within this chunk
+                    const index = getPixelIndex(currentX + chunks[j], currentY + chunks[i]);
+
+                    // Assign the fill color to the current pixel
                     pixels[index] = fillColor[0];
                     pixels[index + 1] = fillColor[1];
                     pixels[index + 2] = fillColor[2];

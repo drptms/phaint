@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { bucket } from "../../routes/(drawing)/design/shared.svelte";
+	import { bucket, selectionMode } from "../../routes/(drawing)/design/shared.svelte";
 	import ViteWorker from "../../routes/(drawing)/design/floodworker.svelte?worker";
 	import { onMount, onDestroy } from 'svelte';
 
