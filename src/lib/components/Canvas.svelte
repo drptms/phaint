@@ -10,6 +10,12 @@
 	var context: CanvasRenderingContext2D | null | undefined = $state();
 	let coords: Coordinates | undefined | null = $state();
 
+	let selector: HTMLElement;
+	let container: HTMLElement;
+	let startX = 0;
+	let startY = 0;
+	let mousedown = false;
+
 	function showCanvas() {
 		//console.log(canvas?.toDataURL())
 	}
@@ -30,6 +36,14 @@
 			}
 			context.putImageData(new ImageData(updatedCanvasData.data, updatedCanvasData.width, updatedCanvasData.height), 0, 0);
 		};
+
+		container.addEventListener('mousedown', (e) => {
+
+		});
+
+		container.addEventListener('mousemove', (e) => {
+
+		});
 	});
 
 	onDestroy(() => {
@@ -60,19 +74,33 @@
 	});
 </script>
 
-<div class="container">
+<div class="container" bind:this={container}>
+	<div class="selector" bind:this={selector}></div>
 	<canvas
 		bind:this={canvas}
 		onclick="{showCanvas}"
 		onpointerdown={(e) => {
 			coords = { x: e.offsetX, y: e.offsetY };
-			if (!context) {
+			if (!context || !canvas) {
 				return
 			}
 			if (color === "bucket") {
 				floodFill(coords);
 				return
 			}
+			if (selectionMode.active) {
+				selector.style.visibility = 'visible';
+				selector.style.width = '0px';
+				selector.style.height = '0px';
+				startX = coords.x + canvas.offsetLeft;
+				startY = coords.y + canvas.offsetTop;
+				selector.style.left = `${startX}px`;
+				selector.style.top = `${startY}px`;
+				console.log(startX, startY)
+				mousedown = true;
+				return
+			}
+
 			context.fillStyle = color;
 			context.beginPath();
 			context.arc(coords.x, coords.y, size / 2, 0, 2 * Math.PI);
@@ -80,16 +108,41 @@
 		}}
 		onpointerleave={() => {
 			coords = null;
+				
 		}}
 		onpointermove={(e) => {
 			const previous = coords;
 			coords = { x: e.offsetX, y: e.offsetY };
+			e.preventDefault();
+			if (!context || !previous || e.buttons !== 1 || !canvas) {
+				return
+			}
 
-			if (e.buttons === 1 && color !== 'bucket') {
-				e.preventDefault();
-				if (!context || !previous) {
+			if (selectionMode.active) {
+				if (!mousedown) {
 					return
 				}
+				const currentX = coords.x + canvas.offsetLeft;
+				const currentY = coords.y + canvas.offsetTop;
+				let width = currentX - startX;
+				let height = currentY - startY;
+
+				if (currentX - startX < 0) {
+					selector.style.left = `${currentX}px`;
+					width = startX - currentX;
+				}
+				if (currentY - startY < 0) {
+					selector.style.top = `${currentY}px`;
+					height = startY - currentY;
+				}
+
+				selector.style.width = `${width}px`;
+				selector.style.height = `${height}px`;
+				return
+			}
+
+			if (color !== 'bucket') {
+				
 				context.strokeStyle = color;
 				context.lineWidth = size;
 				context.lineCap = 'round';
@@ -97,6 +150,20 @@
 				context.moveTo(previous.x, previous.y);
 				context.lineTo(coords.x, coords.y);
 				context.stroke();
+			}
+		}}
+		onpointerup={(_) => {
+			if (selectionMode.active) {
+				if (!context || !canvas) {
+					return
+				}
+				mousedown = false;
+				const selectedStartX = parseInt(selector.style.left) - canvas.offsetLeft;
+				const selectedStartY = parseInt(selector.style.top) - canvas.offsetTop;
+				const selectedStartWidth = parseInt(selector.style.width);
+				const selectedStartHeight = parseInt(selector.style.height);
+
+				
 			}
 		}}
 	></canvas>
@@ -130,7 +197,13 @@
 		display: inline-block;
 	}
 
-
+	.selector {
+		visibility: hidden;
+		position: absolute;
+		width: 0;
+		height: 0;
+		border: 2px dashed black;
+	}
 	canvas {
 		position: relative;
 		align-self: center;
