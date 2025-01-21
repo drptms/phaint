@@ -3,7 +3,7 @@
 	export let projectName = 'Project Name'; // Name of the project
 	export let lastModified = 'Last modified date'; // Date of last modification
 
-    export let projectId = '';
+    export const projectId = '';
 </script>
 
 <div class="card">

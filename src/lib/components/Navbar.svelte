@@ -15,6 +15,7 @@
     }
 </script>
 
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <nav class="navbar">
     <!-- Logo Section -->
     <div class="logo-section">
@@ -32,8 +33,9 @@
     </ul>
 
     <!-- Profile Section -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
     <div class="profile-section" on:click={profileClick}>
-        <img src="logoPhaint.png" alt="Profile Picture" class="profile-pic" />
+        <img src="logoPhaint.png" alt="" class="profile-pic" />
     </div>
 
     <Modal bind:showModal/>
