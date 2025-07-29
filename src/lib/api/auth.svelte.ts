@@ -7,8 +7,6 @@ export async function registerUser(username: string, mail: string, password: str
         headers.set('Content-Type', 'application/json')
         headers.set('Accept', 'application/json')
 
-        console.log(username, mail, password)
-
         const request: RequestInfo = new Request(LOCAL_API_KEY + "/users/register", {
             method: 'POST',
             headers: headers,
@@ -27,18 +25,16 @@ export async function registerUser(username: string, mail: string, password: str
     }
 }
 
-export async function authenticateUser(username: string, mail: string, password: string) {
+export async function authenticateUser(mail: string, password: string) {
     try {
         const headers: Headers = new Headers()
         headers.set('Content-Type', 'application/json')
         headers.set('Accept', 'application/json')
 
-        console.log(username, mail, password)
-
         const request: RequestInfo = new Request(LOCAL_API_KEY + "/users/login", {
             method: 'POST',
             headers: headers,
-            body: JSON.stringify({ username: username, mail: mail, password: password })
+            body: JSON.stringify({ mail: mail, password: password })
         })
 
         const result = await fetch(request)

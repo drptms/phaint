@@ -1,9 +1,9 @@
 <script lang="ts">
 	import Navbar from "$lib/components/Navbar.svelte";
 
-    let { children } = $props();
+    let { data, children } = $props();
 </script>
 
-<Navbar></Navbar>
+<Navbar {data}></Navbar>
 
 {@render children()}
