@@ -25,7 +25,7 @@
 <nav class="navbar">
     <!-- Logo Section -->
     <div class="logo-section">
-        <img src="logoPhaint.png" alt="Flowbite Logo" class="logo" />
+        <img src="/logoPhaint.png" alt="Flowbite Logo" class="logo" />
         <span class="title">Phaint</span>
     </div>
 
@@ -41,7 +41,7 @@
     <!-- Profile Section -->
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <div class="profile-section" on:click={profileClick}>
-        <img src="logoPhaint.png" alt="" class="profile-pic" />
+        <img src="/logoPhaint.png" alt="" class="profile-pic" />
     </div>
 
     <Modal bind:activeTab bind:showModal/>

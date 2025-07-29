@@ -1,16 +1,12 @@
 <script>
-	export let imageUrl = ''; // URL for the project image
-	export let projectName = 'Project Name'; // Name of the project
-	export let lastModified = 'Last modified date'; // Date of last modification
-
-    export const projectId = '';
+	let {item = $bindable()} = $props()
 </script>
 
 <div class="card">
-	<div class="image" style="background-image: url('{imageUrl}');"></div>
+	<div class="image" style="background-image: url('{item.imageUrl}');"></div>
 	<div class="details">
-		<div class="project-name">{projectName}</div>
-		<div class="last-modified">{lastModified}</div>
+		<div class="project-name">{item.projectName}</div>
+		<div class="last-modified">{item.lastModified}</div>
 	</div>
 </div>
 
