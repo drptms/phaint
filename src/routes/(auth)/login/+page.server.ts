@@ -13,6 +13,7 @@ export const actions = {
         if (response != null) {
             const decoded = jwt.decode(response.UserToken) as any;
             cookies.set("UserToken", decoded.user_id , {path: "/"});
+            cookies.set("username", response.username, {path: "/"});
         }       
 	}
 } satisfies Actions;

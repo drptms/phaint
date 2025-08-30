@@ -5,7 +5,7 @@ import type { PageServerLoad } from "./$types";
 export const load: PageServerLoad = async ({ cookies, params }: Parameters<PageServerLoad>[0]) => {
 	// await getAllUserProjects(params.userId)
 	return {
-		userToken : cookies.get('UserToken'),
+		username : cookies.get('username'),
 		projects : [{imageUrl: '', projectName: 'prova1', lastModified: '11/11/2002'}]
 	};
 };

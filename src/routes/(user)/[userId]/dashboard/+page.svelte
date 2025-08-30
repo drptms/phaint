@@ -4,7 +4,7 @@
 
     let { data }: { data: PageData } = $props();
 
-    let user = $state(data.userToken);
+    let user = $state(data.username);
 
     function addProject() {
         alert("Add Project Clicked!");
