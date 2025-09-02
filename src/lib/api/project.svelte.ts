@@ -1,4 +1,4 @@
-import { error } from "@sveltejs/kit";
+import { error } from '@sveltejs/kit';
 
 function createGetRequest(url: string, headers?: Headers) {
     return new Request(url, {
@@ -11,10 +11,9 @@ async function getProjectById(id: string) {
     try {
         let response = await fetch("" + id);
         if (!response.ok) {
-            throw error(500, "Failed to fetch API");
-        }
-        let data = response.json();
-        return data; 
+					throw error(500, 'Failed to fetch API');
+				}
+        return response.json();
     } catch (error) {
         console.error(error);
         return null;
@@ -27,8 +26,7 @@ export async function getAllUserProjects(userId: string) {
         if (!response.ok) {
             throw error(500, "Failed to fetch API");
         }
-        let data = response.json();
-        return data; 
+        return response.json();
     } catch (error) {
         console.error(error);
         return null;

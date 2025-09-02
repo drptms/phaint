@@ -1,11 +1,10 @@
-import { getAllUserProjects } from "$lib/api/project.svelte"
-import type { PageServerLoad } from "./$types";
-
+import { getAllUserProjects } from '$lib/api/project.svelte';
+import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ cookies, params }: Parameters<PageServerLoad>[0]) => {
 	// await getAllUserProjects(params.userId)
 	return {
-		username : cookies.get('username'),
-		projects : [{imageUrl: '', projectName: 'prova1', lastModified: '11/11/2002'}]
+		username: cookies.get('username'),
+		projects: [{ imageUrl: '', projectName: 'prova1', lastModified: '11/11/2002' }]
 	};
 };

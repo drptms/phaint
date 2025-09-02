@@ -1,60 +1,60 @@
 <script>
-    import Modal from "./Modal.svelte";
-    
-    // Accept data from the layout
-    export let data;
-    
-    $: userToken = data?.userToken ?? '5';
+	import Modal from './Modal.svelte';
 
-    $: links = [
-        { href: '/', label: 'Home' },
-        { href: `/${userToken}/dashboard`, label: 'My projects'},
-        { href: '/about', label: 'About' },
-        { href: '/contact', label: 'Contact' },
-    ];
-    
-    let showModal = false;
-    let activeTab = 'register'
-    
-    function profileClick() {
-        showModal = !showModal;
-    }
+	// Accept data from the layout
+	export let data;
+
+	$: userToken = data?.userToken ?? '5';
+
+	$: links = [
+		{ href: '/', label: 'Home' },
+		{ href: `/${userToken}/dashboard`, label: 'My projects' },
+		{ href: '/about', label: 'About' },
+		{ href: '/contact', label: 'Contact' }
+	];
+
+	let showModal = false;
+	let activeTab = 'register';
+
+	function profileClick() {
+		showModal = !showModal;
+	}
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <nav class="navbar">
-    <!-- Logo Section -->
-    <div class="logo-section">
-        <img src="/logoPhaint.png" alt="Flowbite Logo" class="logo" />
-        <span class="title">Phaint</span>
-    </div>
+	<!-- Logo Section -->
+	<div class="logo-section">
+		<img src="/logoPhaint.png" alt="Flowbite Logo" class="logo" />
+		<span class="title">Phaint</span>
+	</div>
 
-    <!-- Links Section -->
-    <ul class="links-section">
-        {#each links as link}
-            <li>
-                <a href={link.href} class="link">{link.label}</a>
-            </li>
-        {/each}
-    </ul>
+	<!-- Links Section -->
+	<ul class="links-section">
+		{#each links as link}
+			<li>
+				<a href={link.href} class="link">{link.label}</a>
+			</li>
+		{/each}
+	</ul>
 
-    <!-- Profile Section -->
-    <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <div class="profile-section" on:click={profileClick}>
-        <img src="/logoPhaint.png" alt="" class="profile-pic" />
-    </div>
+	<!-- Profile Section -->
+	<!-- svelte-ignore a11y_click_events_have_key_events -->
+	<div class="profile-section" on:click={profileClick}>
+		<img src="/logoPhaint.png" alt="" class="profile-pic" />
+	</div>
 
-    <Modal bind:activeTab bind:showModal/>
+	<Modal bind:activeTab bind:showModal />
 </nav>
 
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
     .navbar {
-        background: linear-gradient(135deg, 
-            rgba(20, 15, 40, 0.98) 0%, 
-            rgba(35, 25, 60, 0.95) 50%, 
-            rgba(50, 35, 80, 0.92) 100%);
+        background: linear-gradient(135deg,
+        rgba(20, 15, 40, 0.98) 0%,
+        rgba(35, 25, 60, 0.95) 50%,
+        rgba(50, 35, 80, 0.92) 100%);
         padding: 1rem 2rem;
         display: flex;
         align-items: center;
@@ -73,9 +73,9 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: linear-gradient(135deg, 
-            rgba(138, 43, 226, 0.05) 0%, 
-            rgba(30, 144, 255, 0.02) 100%);
+        background: linear-gradient(135deg,
+        rgba(138, 43, 226, 0.05) 0%,
+        rgba(30, 144, 255, 0.02) 100%);
         pointer-events: none;
     }
 
@@ -194,16 +194,16 @@
         .navbar {
             padding: 1rem;
         }
-        
+
         .links-section {
             gap: 1.5rem;
         }
-        
+
         .link {
             font-size: 0.9rem;
             padding: 0.4rem 0.8rem;
         }
-        
+
         .title {
             font-size: 1.25rem;
         }
@@ -213,15 +213,15 @@
         .navbar {
             padding: 0.75rem;
         }
-        
+
         .links-section {
             display: none; /* You might want to implement a mobile menu here */
         }
-        
+
         .logo-section {
             gap: 0.5rem;
         }
-        
+
         .title {
             font-size: 1.1rem;
         }
