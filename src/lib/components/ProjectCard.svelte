@@ -1,8 +1,16 @@
 <script>
-	let { item = $bindable() } = $props();
+	import { goto } from '$app/navigation';
+
+	let { item = $bindable()} = $props();
+
+	function handleClick() {
+		goto(`workboard/${item.projectName}`)
+	}
 </script>
 
-<div class="card">
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<div class="card" onclick={handleClick}>
 	<div class="image" style="background-image: url('{item.imageUrl}');"></div>
 	<div class="details">
 		<div class="project-name">{item.projectName}</div>
