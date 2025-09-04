@@ -43,7 +43,6 @@ export class ProjectWebSocket {
 	constructor(projectId: string, userId: string) {
 		this.projectId = projectId;
 		this.userId = userId;
-		console.log(userId)
 	}
 
 	connect(): Promise<void> {

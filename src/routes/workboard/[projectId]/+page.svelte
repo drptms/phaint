@@ -414,6 +414,7 @@
     function saveVector(): void {
         try {
             const data = get(vectorData);
+            const stringData = JSON.stringify(data);
             saveToLocalStorage(STORAGE_KEY, data);
             downloadAsJSON(data, `svelte_ts_drawing_${Date.now()}.json`);
             alert('Drawing saved as TypeScript vector data!');
