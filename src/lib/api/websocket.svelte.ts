@@ -24,15 +24,15 @@ export interface UserPresence {
 	lastSeen: string;
 }
 
-export interface WebSocketMessage {
-	type: string;
-	data: any;
-	userId?: string;
-	projectId?: string;
-}
+// export interface WebSocketMessage {
+// 	type: string;
+// 	data: any;
+// 	userId?: string;
+// 	projectId?: string;
+// }
 
 export const connectionStatus = writable<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
-export const operations = writable<DrawingOperation[]>([]);
+export const operations = writable<string>();
 export const users = writable<Record<string, UserPresence>>({});
 
 export class ProjectWebSocket {
@@ -77,41 +77,32 @@ export class ProjectWebSocket {
 
 	private handleMessage(event: MessageEvent): void {
 		try {
-			const message: WebSocketMessage = JSON.parse(event.data);
-
-			switch (message.type) {
-				case 'operation':
-					operations.update(ops => [...ops, message.data as DrawingOperation]);
-					break;
-				case 'users_state':
-					users.set(message.data);
-					break;
-				case 'cursor_move':
-					// Update user cursor position
-					break;
-			}
+			// const message: string = event.data;
+			// operations.update(ops => [...ops, message])
+			// switch (message.type) {
+			// 	case 'operation':
+			// 		operations.update(ops => [...ops, message.data as DrawingOperation]);
+			// 		break;
+			// 	case 'users_state':
+			// 		users.set(message.data);
+			// 		break;
+			// 	case 'cursor_move':
+			// 		// Update user cursor position
+			// 		break;
+			// }
 		} catch (error) {
 			console.error('Failed to parse WebSocket message:', error);
 		}
 	}
 
-	sendOperation(operation: DrawingOperation): void {
-		this.sendMessage({
-			type: 'operation',
-			data: operation
-		});
+	sendOperation(data: string): void {
+		this.sendMessage(data);
 	}
 
-	sendCursorPosition(x: number, y: number): void {
-		this.sendMessage({
-			type: 'cursor_move',
-			data: { position: { x, y } }
-		});
-	}
 
-	private sendMessage(message: WebSocketMessage): void {
+	private sendMessage(message: string): void {
 		if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-			this.ws.send(JSON.stringify(message));
+			this.ws.send(message);
 		}
 	}
 
