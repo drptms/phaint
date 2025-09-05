@@ -1,6 +1,7 @@
 // Svelte stores for the vector drawing application
 import { writable, derived, type Writable } from 'svelte/store';
-import type { VectorElement, DrawingTool, VectorData, DrawingStats } from './CanvasTypes';
+import type { VectorElement, DrawingTool, VectorData, DrawingStats, CanvasType } from './CanvasTypes';
+import type { WorkBoardState } from '$lib/api/websocket.svelte';
 
 // Drawing state stores
 export const currentTool = writable<DrawingTool>('pen' as DrawingTool);
@@ -9,12 +10,12 @@ export const currentFillColor = writable<string>('#FF0000');
 export const currentStrokeWidth = writable<number>(2);
 
 
-export function createShapesStore() {
-	return writable<VectorElement[]>([]);
+export function createShapesStore(elements?: VectorElement[]) {
+	return writable<VectorElement[]>(elements || []);
 }
 
-export function createBackgroundFillStore() {
-	return writable<string>('none');
+export function createBackgroundFillStore(backgroundFill?: string) {
+	return writable<string>(backgroundFill || 'none');
 }
 // Canvas state
 export const isDrawing = writable<boolean>(false);

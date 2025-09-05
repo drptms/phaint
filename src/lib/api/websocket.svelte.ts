@@ -1,14 +1,9 @@
+import type { VectorData } from '$lib/components/CanvasTypes';
 import { writable } from 'svelte/store';
 
-export interface DrawingOperation {
-	type: string;
-	tool: string;
-	color: string;
-	points: Point[];
-	timestamp: number;
-	userId: string;
+export interface WorkBoardState {
 	id: string;
-	projectId: string;
+	vectorData: VectorData;
 }
 
 export interface Point {
@@ -32,7 +27,7 @@ export interface WebSocketMessage {
 }
 
 export const connectionStatus = writable<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
-export const operations = writable<DrawingOperation[]>([]);
+export const operations = writable<WorkBoardState[]>([]);
 export const users = writable<Record<string, UserPresence>>({});
 
 export class ProjectWebSocket {
@@ -78,10 +73,9 @@ export class ProjectWebSocket {
 	private handleMessage(event: MessageEvent): void {
 		try {
 			const message: WebSocketMessage = JSON.parse(event.data);
-
 			switch (message.type) {
 				case 'operation':
-					operations.update(ops => [...ops, message.data as DrawingOperation]);
+					operations.set(message.data as WorkBoardState[]);
 					break;
 				case 'users_state':
 					users.set(message.data);
@@ -95,7 +89,7 @@ export class ProjectWebSocket {
 		}
 	}
 
-	sendOperation(operation: DrawingOperation): void {
+	sendOperation(operation: WorkBoardState[]): void {
 		this.sendMessage({
 			type: 'operation',
 			data: operation
