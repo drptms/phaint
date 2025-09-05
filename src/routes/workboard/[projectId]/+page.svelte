@@ -11,6 +11,7 @@
         canvasCursor,
         vectorData,
         drawingStats
+
     } from '$lib/components/CanvasStore';
     import type {
         Point,
@@ -501,7 +502,7 @@
                                     class="btn tool-btn"
                                     class:active={$currentTool === tool.id}
                                     class:bucket-tool={tool.id === 'bucket'}
-                                    on:click={() => selectTool(tool.id)}
+                                    onclick={() => selectTool(tool.id)}
                                     type="button"
                             >
                                 {tool.icon}
@@ -520,7 +521,7 @@
                                     class="color-swatch"
                                     class:active={$currentStrokeColor === color}
                                     style="background-color: {color};"
-                                    on:click={() => selectStrokeColor(color)}
+                                    onclick={() => selectStrokeColor(color)}
                                     type="button"
                                     aria-label="Stroke color {color}"
                             ></button>
@@ -537,7 +538,7 @@
                                     class="color-swatch"
                                     class:active={$currentFillColor === color}
                                     style="background-color: {color};"
-                                    on:click={() => selectFillColor(color)}
+                                    onclick={() => selectFillColor(color)}
                                     type="button"
                                     aria-label="Fill color {color}"
                             ></button>
@@ -566,19 +567,11 @@
                     width={CANVAS_WIDTH}
                     height={CANVAS_HEIGHT}
                     style="cursor: {$canvasCursor};"
-                    on:mousedown={handleCanvasMouseDown}
-                    on:mousemove={handleCanvasMouseMove}
-                    on:mouseup={handleCanvasMouseUp}
-                    on:mouseleave={handleCanvasMouseLeave}
+                    onmousedown={handleCanvasMouseDown}
+                    onmousemove={handleCanvasMouseMove}
+                    onmouseup={handleCanvasMouseUp}
+                    onmouseleave={handleCanvasMouseLeave}
             ></canvas>
-
-            <div class="instructions">
-                <strong>TypeScript Instructions:</strong><br />
-                • Use Pen/Rectangle/Circle to draw typed shapes<br />
-                • Use Bucket tool to fill closed shapes or background<br />
-                • All state is type-safe and reactive<br />
-                • <em>Powered by Svelte + TypeScript!</em>
-            </div>
         </div>
 
         <!-- Right Panel: Vector Data & Stats -->
@@ -586,16 +579,21 @@
             <div class="panel-content">
                 <h3>Utils ⚡</h3>
                 <h4>Add Page:</h4>
+                <div class="form-group action-buttons">
+                    <button class="btn btn-primary" type="button">
+                        ➕ New Page
+                    </button>
+                </div>
                 <h4>Add Behavior:</h4>
                 <!-- Action Buttons -->
                 <div class="form-group action-buttons">
-                    <button class="btn btn-primary" on:click={saveVector} type="button">
+                    <button class="btn btn-primary" onclick={saveVector} type="button">
                         💾 Save as Vector
                     </button>
-                    <button class="btn btn-secondary" on:click={loadVector} type="button">
+                    <button class="btn btn-secondary" onclick={loadVector} type="button">
                         📁 Load Vector
                     </button>
-                    <button class="btn btn-danger" on:click={clearCanvas} type="button">
+                    <button class="btn btn-danger" onclick={clearCanvas} type="button">
                         🗑️ Clear Canvas
                     </button>
                 </div>
@@ -606,7 +604,6 @@
 
 <style>
     .app-container {
-        max-width: 1400px;
         margin: 0 auto;
         padding: 20px;
         max-height: 100%;
@@ -631,9 +628,9 @@
 
     .app-content {
         display: grid;
-        grid-template-columns: 320px 1fr 320px;
-        gap: 20px;
-        min-height: 600px;
+        grid-template-columns: 0.3fr 1fr 0.3fr;
+        gap: 15px;
+        min-height: 100%;
         max-width: 100%;
         height: 80vh;
         overflow: auto;
@@ -648,7 +645,11 @@
     }
 
     .panel-content {
-        padding: 20px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        overflow: auto;
+        height: 100%;
     }
 
     .panel-content h3 {
@@ -717,7 +718,7 @@
 
     .btn-primary {
         background: linear-gradient(135deg, #007bff, #0056b3);
-        color: white;
+        color: white;;
         border-color: #007bff;
     }
 
@@ -750,13 +751,13 @@
 
     .color-palette {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(6, 1fr);
         gap: 8px;
     }
 
     .color-swatch {
         width: 100%;
-        height: 35px;
+        height: 30px;
         border: 3px solid #ddd;
         border-radius: 8px;
         cursor: pointer;
@@ -827,94 +828,10 @@
         box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
     }
 
-    .instructions {
-        margin-top: 20px;
-        padding: 16px;
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 10px;
-        font-size: 13px;
-        color: #666;
-        line-height: 1.4;
-        max-width: 600px;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-
-    .stats {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        margin-bottom: 25px;
-    }
-
-    .stat-item {
-        padding: 14px;
-        background: #f8f9fa;
-        border-radius: 10px;
-        font-size: 14px;
-        border: 1px solid #e9ecef;
-        transition: all 0.2s ease;
-    }
-
-    .stat-item:hover {
-        background: #e9ecef;
-        transform: translateY(-1px);
-    }
-
-    .space-saved {
-        background: linear-gradient(135deg, #d4edda, #c3e6cb) !important;
-        color: #155724;
-        font-weight: 600;
-        border-color: #c3e6cb !important;
-    }
-
     .data-panel h4 {
         margin: 0 0 12px 0;
         color: #333;
         font-size: 1.1rem;
-    }
-
-    .vector-output {
-        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
-        font-size: 11px;
-        white-space: pre-wrap;
-        max-height: 280px;
-        overflow-y: auto;
-        background: #f8f9fa;
-        padding: 14px;
-        border-radius: 8px;
-        border: 1px solid #e9ecef;
-        line-height: 1.4;
-        scrollbar-width: thin;
-    }
-
-    .vector-output::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    .vector-output::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 3px;
-    }
-
-    .vector-output::-webkit-scrollbar-thumb {
-        background: #c1c1c1;
-        border-radius: 3px;
-    }
-
-    .vector-output::-webkit-scrollbar-thumb:hover {
-        background: #a1a1a1;
-    }
-
-    .info-box {
-        margin-top: 20px;
-        padding: 16px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 10px;
-        font-size: 12px;
-        line-height: 1.5;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
     }
 
     /* Responsive design */
