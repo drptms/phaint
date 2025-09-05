@@ -34,22 +34,25 @@ export async function getAllUserProjects(userId: string) {
 	// }
 }
 
-export async function addProject(userId: string, projectId: string) {
+export async function addProject(userId: string, projectName: string) {
 	try {
 		const headers: Headers = new Headers();
 		headers.set('Content-Type', 'application/json');
 		headers.set('Accept', 'application/json');
 
-		const request: RequestInfo = new Request(LOCAL_API_KEY + '/projects/add', {
+        const date = new Date();
+        const today = date.getDay() + "/" + date.getMonth() + "/" + date.getFullYear();
+
+		const request: RequestInfo = new Request(LOCAL_API_KEY + '/projects', {
 			method: 'POST',
 			headers: headers,
-			body: JSON.stringify({ UID: userId, PID: projectId })
+			body: JSON.stringify({ UID: userId, "projectName": projectName, "creationDate": today })
 		});
 
-		return await fetch(request).then(async (res) => {
-			return await res.json();
-		});
-	} catch (error) {
+        return await fetch(request).then(async (res) => {
+            return await res.json();
+        });
+    } catch (error) {
 		console.error(error);
 		return null;
 	}

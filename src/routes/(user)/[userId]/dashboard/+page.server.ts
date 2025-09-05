@@ -3,7 +3,7 @@ import type { PageServerLoad, Actions } from './$types';
 
 export const load: PageServerLoad = async ({ cookies, params }: Parameters<PageServerLoad>[0]) => {
 	// await getAllUserProjects(params.userId)
-	console.log(cookies)
+	// console.log(cookies)
 	return {
 		userId: cookies.get('userToken'),
 		username: cookies.get('username'),
@@ -14,10 +14,9 @@ export const load: PageServerLoad = async ({ cookies, params }: Parameters<PageS
 export const actions = {
 	addProject: async ({ cookies, request }) => {
 		let data = await request.formData();
-		let uid = cookies.get('userToken') as string;
-		let pid = data.get('pid') as string;
+		let uid = cookies.get('UserToken') as string;
 		let pname = data.get('pname') as string;
 
-		await addProject(uid, pid);
+		await addProject(uid, pname);
 	}
 } satisfies Actions;
