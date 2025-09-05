@@ -11,8 +11,6 @@ export async function registerUser(username: string, mail: string, password: str
 					headers: headers,
 					body: JSON.stringify({ username: username, mail: mail, password: password })
 				});
-
-
         
         return await fetch(request)
 					.then(async res => {

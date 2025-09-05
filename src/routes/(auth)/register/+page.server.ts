@@ -1,5 +1,6 @@
 import type { Actions } from './$types';
 import { registerUser } from '$lib/api/auth.svelte';
+import jwt from 'jsonwebtoken';
 
 export const actions = {
 	register: async ({ cookies, request }) => {
@@ -9,8 +10,10 @@ export const actions = {
 		let password = data.get('password') as string;
 
 		let response = await registerUser(username, mail, password);
-		if (response.status === 200) {
-			cookies.set('UserToken', response.UserToken, { path: '/' });
+		if (response != null) {
+			const decoded = jwt.decode(response.UserToken) as any;
+			cookies.set('UserToken', decoded.user_id, { path: '/' });
+			cookies.set('username', response.username, { path: '/' });
 		}
 	}
 } satisfies Actions;

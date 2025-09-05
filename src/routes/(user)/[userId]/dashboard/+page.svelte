@@ -1,31 +1,38 @@
 <script lang="ts">
-    import ProjectCard from "$lib/components/ProjectCard.svelte";
-    import type { PageData } from './$types';
+	import ProjectCard from '$lib/components/ProjectCard.svelte';
+	import ProjectModal from '$lib/components/ProjectModal.svelte';
+	import type { PageData } from './$types';
 
-    let { data }: { data: PageData } = $props();
+	let { data }: { data: PageData } = $props();
+	let user = $state(data.username);
 
-    let user = $state(data.username);
+	let showModal = $state(false);
 
-    function addProject() {
-        alert("Add Project Clicked!");
-    }
+	function openModal() {
+		showModal = true;
+	}
+	function closeModal() {
+		showModal = false;
+	}
 </script>
 
 <div class="dashboard-header">
-    <h1 class="dashboard-greeting">Hello {user}</h1>
-    <button class="add-project-btn" onclick={addProject}>
-        <svg width="20" height="20" fill="none" style="margin-right:8px;">
-            <circle cx="10" cy="10" r="9" stroke="#ffffff" stroke-width="2"/>
-            <path d="M10 6v8M6 10h8" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-        Add Project
-    </button>
+	<h1 class="dashboard-greeting">Hello {user}</h1>
+	<button class="add-project-btn" onclick={openModal}>
+		<!-- svg unchanged -->
+		Add Project
+	</button>
 </div>
 
+<ProjectModal
+	open={showModal}
+	onClose={closeModal}
+/>
+
 <div class="project-container">
-    {#each data.projects as item}
-        <ProjectCard {item}/>
-    {/each}
+	{#each data.projects as item}
+		<ProjectCard {item} />
+	{/each}
 </div>
 
 <style>
@@ -45,7 +52,7 @@
         color: black;
         font-size: 2.2rem;
         font-weight: 700;
-        text-shadow: 0 2px 10px rgba(0,0,0,0.25);
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
         letter-spacing: -1px;
         margin: 0;
     }
@@ -61,15 +68,16 @@
         font-size: 1rem;
         font-weight: 600;
         cursor: pointer;
-        box-shadow: 0 8px 20px rgba(138,43,226,0.21);
-        transition: all .2s cubic-bezier(.4,0,.2,1);
+        box-shadow: 0 8px 20px rgba(138, 43, 226, 0.21);
+        transition: all .2s cubic-bezier(.4, 0, .2, 1);
         outline: none;
         gap: 0.5rem;
     }
+
     .add-project-btn:hover {
         background: linear-gradient(135deg, #9932cc 0%, #8a2be2 100%);
         transform: translateY(-2px) scale(1.03);
-        box-shadow: 0 16px 40px rgba(138,43,226,0.22);
+        box-shadow: 0 16px 40px rgba(138, 43, 226, 0.22);
     }
 
     .project-container {
@@ -88,12 +96,15 @@
             padding-left: 0.1rem;
             padding-right: 0.1rem;
         }
+
         .dashboard-greeting {
             font-size: 1.3rem;
         }
+
         .project-container {
             gap: 1rem;
         }
+
         .add-project-btn {
             padding: 0.7rem 1rem;
             font-size: 0.95rem;

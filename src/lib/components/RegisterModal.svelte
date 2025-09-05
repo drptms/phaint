@@ -21,7 +21,7 @@
 		<p class="subtitle">Keep it all together and you'll be fine</p>
 
 		<form id="loginForm" method="POST" action="/register?/register">
-			<input type="text" id="username" name="username" placeholder="Email or Phone" required />
+			<input type="text" id="username" name="username" placeholder="Username" required />
 			<input type="email" id="mail" name="mail" placeholder="Mail" required />
 			<input type="password" id="password" name="password" placeholder="Password" required />
 

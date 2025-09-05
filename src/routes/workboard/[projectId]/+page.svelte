@@ -14,6 +14,7 @@
 		CanvasType
 	} from '$lib/components/CanvasTypes';
 	import { generateId } from '$lib/components/CanvasUtils';
+	import { showLayout } from '$lib/stores/ui';
 
 	let canvases: CanvasType[] = $state([]);
 
@@ -70,6 +71,7 @@
 
 	onDestroy(() => {
 		socket?.disconnect();
+		$showLayout = true;
 		console.log('Disconnected from project:', projectId);
 	});
 
