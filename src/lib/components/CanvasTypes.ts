@@ -1,6 +1,15 @@
+import type { Writable } from "svelte/store";
+import type Canvas from "./Canvas.svelte";
+
 export interface Point {
 	x: number;
 	y: number;
+}
+
+export interface CanvasType {
+	id: string;
+	shapes: Writable<VectorElement[]>;
+	backgroundFill: Writable<string>;
 }
 
 export interface VectorShape {
