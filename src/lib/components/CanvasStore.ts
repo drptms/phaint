@@ -1,5 +1,5 @@
 // Svelte stores for the vector drawing application
-import { writable, derived } from 'svelte/store';
+import { writable, derived, type Writable } from 'svelte/store';
 import type { VectorElement, DrawingTool, VectorData, DrawingStats } from './CanvasTypes';
 
 // Drawing state stores
@@ -8,10 +8,14 @@ export const currentStrokeColor = writable<string>('#000000');
 export const currentFillColor = writable<string>('#FF0000');
 export const currentStrokeWidth = writable<number>(2);
 
-// Vector data stores
-export const shapes = writable<VectorElement[]>([]);
-export const backgroundFill = writable<string>('none');
 
+export function createShapesStore() {
+	return writable<VectorElement[]>([]);
+}
+
+export function createBackgroundFillStore() {
+	return writable<string>('none');
+}
 // Canvas state
 export const isDrawing = writable<boolean>(false);
 
@@ -26,35 +30,46 @@ export const canvasCursor = derived(
 	}
 );
 
-export const vectorData = derived(
-	[shapes, backgroundFill],
-	([$shapes, $backgroundFill]): VectorData => ({
-		width: 800,
-		height: 600,
-		backgroundFill: $backgroundFill,
-		elements: $shapes,
-		timestamp: new Date().toISOString(),
-		version: '2.0'
-	})
-);
+export function vectorDataStore(
+	shapes: Writable<VectorElement[]>,
+	backgroundFill: Writable<string>
+) {
+	return derived(
+		[shapes, backgroundFill],
+		([$shapes, $backgroundFill]): VectorData => ({
+			width: 800,
+			height: 600,
+			backgroundFill: $backgroundFill,
+			elements: $shapes,
+			timestamp: new Date().toISOString(),
+			version: '2.0'
+		})
+	);
+}
 
-export const drawingStats = derived(
-	vectorData,
-	($vectorData): DrawingStats => {
-		const vectorStr = JSON.stringify($vectorData);
-		const vectorSizeBytes = new Blob([vectorStr]).size;
-		const bitmapSizeBytes = 800 * 600 * 4; // RGBA
-		const spaceSavedPercent = vectorSizeBytes > 0
-			? ((bitmapSizeBytes - vectorSizeBytes) / bitmapSizeBytes * 100).toFixed(1)
-			: '100';
+export function drawingStats(
+	shapes: Writable<VectorElement[]>,
+	backgroundFill: Writable<string>
+) {
+	const vectorData = vectorDataStore(shapes, backgroundFill);
+	return derived(
+		vectorData,
+		($vectorData): DrawingStats => {
+			const vectorStr = JSON.stringify($vectorData);
+			const vectorSizeBytes = new Blob([vectorStr]).size;
+			const bitmapSizeBytes = 800 * 600 * 4; // RGBA
+			const spaceSavedPercent = vectorSizeBytes > 0
+				? ((bitmapSizeBytes - vectorSizeBytes) / bitmapSizeBytes * 100).toFixed(1)
+				: '100';
 
-		return {
-			vectorSize: formatBytes(vectorSizeBytes),
-			bitmapSize: formatBytes(bitmapSizeBytes),
-			spaceSaved: spaceSavedPercent + '%'
-		};
-	}
-);
+			return {
+				vectorSize: formatBytes(vectorSizeBytes),
+				bitmapSize: formatBytes(bitmapSizeBytes),
+				spaceSaved: spaceSavedPercent + '%'
+			};
+		}
+	);
+}
 
 // Utility function
 function formatBytes(bytes: number): string {
