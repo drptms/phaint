@@ -8,7 +8,6 @@ export interface Point {
 
 export interface CanvasType {
 	id: string;
-	index: number;
 	shapes: Writable<VectorElement[]>;
 	backgroundFill: Writable<string>;
 }

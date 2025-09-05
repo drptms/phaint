@@ -8,7 +8,6 @@
 		isDrawing,
 		canvasCursor,
 		vectorDataStore,
-		drawingStats
 	} from '$lib/components/CanvasStore';
 	import type {
 		Point,
@@ -16,8 +15,6 @@
 		VectorPath,
 		VectorRectangle,
 		VectorCircle,
-		DrawingTool,
-		Tool,
 		CanvasState
 	} from '$lib/components/CanvasTypes';
 	import {
@@ -47,39 +44,15 @@
 		tempShapeStart: null
 	};
 
-	// Tools configuration
-	const tools: Tool[] = [
-		{ id: 'pen' as DrawingTool, name: 'Free Draw', icon: '✏️' },
-		{ id: 'rectangle' as DrawingTool, name: 'Rectangle', icon: '⬜' },
-		{ id: 'circle' as DrawingTool, name: 'Circle', icon: '⭕' },
-		{ id: 'bucket' as DrawingTool, name: 'Bucket Fill', icon: '🪣' }
-	];
-
-	// Colors configuration
-	const colors: string[] = [
-		'#000000',
-		'#FF0000',
-		'#00FF00',
-		'#0000FF',
-		'#FFFF00',
-		'#FF00FF',
-		'#00FFFF',
-		'#FFFFFF',
-		'#808080',
-		'#800000',
-		'#008000',
-		'#000080'
-	];
+    // Props
 	const {
 		shapes,
 		backgroundFill
 	}: { shapes: Writable<VectorElement[]>; backgroundFill: Writable<string> } = $props();
 	const vectorData = vectorDataStore(shapes, backgroundFill);
 
-	// Reactive statements for vector output display
-	const vectorOutput = $derived(generateVectorOutput($vectorData));
 
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount } from 'svelte';
 
 	onMount(async () => {
 		ctx = canvas.getContext('2d')!;
@@ -338,19 +311,6 @@
 		ctx.stroke();
 	}
 
-	// Tool and color selection
-	function selectTool(tool: DrawingTool): void {
-		currentTool.set(tool);
-	}
-
-	function selectStrokeColor(color: string): void {
-		currentStrokeColor.set(color);
-	}
-
-	function selectFillColor(color: string): void {
-		currentFillColor.set(color);
-	}
-
 	// Vector data display
 	function generateVectorOutput(data: any): string {
 		if (!data || (data.elements.length === 0 && data.backgroundFill === 'none')) {
@@ -428,19 +388,6 @@
 		}
 	}
 
-	function clearCanvas(): void {
-		shapes.set([]);
-		backgroundFill.set('none');
-		canvasState = {
-			isDrawing: false,
-			currentPath: [],
-			tempShapeStart: null
-		};
-		if (ctx) {
-			ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-		}
-	}
-
 	// Reactive canvas redraw when shapes change
 	$effect(() => {
 		if (canvas && $shapes) {
@@ -454,16 +401,15 @@
 		}
 	});
 </script>
-
 <canvas
-	bind:this={canvas}
-	width={CANVAS_WIDTH}
-	height={CANVAS_HEIGHT}
-	style="cursor: {$canvasCursor};"
-	onmousedown={handleCanvasMouseDown}
-	onmousemove={handleCanvasMouseMove}
-	onmouseup={handleCanvasMouseUp}
-	onmouseleave={handleCanvasMouseLeave}
+    bind:this={canvas}
+    width={CANVAS_WIDTH}
+    height={CANVAS_HEIGHT}
+    style="cursor: {$canvasCursor};"
+    onmousedown={handleCanvasMouseDown}
+    onmousemove={handleCanvasMouseMove}
+    onmouseup={handleCanvasMouseUp}
+    onmouseleave={handleCanvasMouseLeave}
 ></canvas>
 
 <style>
@@ -477,5 +423,14 @@
 
 	canvas:hover {
 		box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+	}
+
+    	@media (max-width: 768px) {
+
+		canvas {
+			width: 100%;
+			max-width: 400px;
+			height: auto;
+		}
 	}
 </style>
