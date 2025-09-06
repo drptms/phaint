@@ -70,6 +70,10 @@
 		} catch (error) {
 			console.error('Failed to connect:', error);
 		}
+		if ($operations.length > 0) {
+			console.log('Loading initial operations:', $operations);
+			loadFromVector($operations);
+		}
 	});
 
 	onDestroy(() => {

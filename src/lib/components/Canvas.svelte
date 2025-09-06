@@ -367,6 +367,7 @@
 		}
 	});
 </script>
+
 <canvas
     bind:this={canvas}
     width={CANVAS_WIDTH}
