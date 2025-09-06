@@ -4,17 +4,17 @@
 	let { item = $bindable()} = $props();
 
 	function handleClick() {
-		goto(`/workboard/${item.projectName}`)
+		goto(`/workboard/${item.PID}`)
 	}
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div class="card" onclick={handleClick}>
-	<div class="image" style="background-image: url('{item.imageUrl}');"></div>
+	<div class="image" style="background-image: url('');"></div>
 	<div class="details">
-		<div class="project-name">{item.projectName}</div>
-		<div class="last-modified">{item.lastModified}</div>
+		<div class="project-name">{item.ProjectName}</div>
+		<div class="last-modified">{item.CreationDate}</div>
 	</div>
 </div>
 
@@ -52,7 +52,7 @@
     }
 
     .project-name {
-        font-size: 16px;
+        font-size: 18px;
         font-weight: bold;
         margin-bottom: 5px;
     }

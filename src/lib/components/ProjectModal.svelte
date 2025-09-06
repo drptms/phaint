@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount } from 'svelte';
 
 	export let open = false;
 	export let onClose: () => void;
@@ -23,8 +23,6 @@
 	>
 		<h2 id="modal-title">Create New Project</h2>
 
-		<label for="pid-input">Project ID:</label>
-		<input id="pid-input" name="pid" type="text" autocomplete="off" required />
 		<label for="pname-input">Project name:</label>
 		<input id="pname-input" name="pname" type="text" autocomplete="off" required />
 

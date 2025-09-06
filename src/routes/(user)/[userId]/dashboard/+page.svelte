@@ -4,7 +4,7 @@
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
-	let user = $state(data.username);
+	let user = data.username;
 
 	let showModal = $state(false);
 
@@ -30,7 +30,7 @@
 />
 
 <div class="project-container">
-	{#each data.projects as item}
+	{#each data.userProjects as item}
 		<ProjectCard {item} />
 	{/each}
 </div>

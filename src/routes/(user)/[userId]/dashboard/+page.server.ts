@@ -1,23 +1,25 @@
 import { addProject, getAllUserProjects } from '$lib/api/project.svelte';
-import type { PageServerLoad, Actions } from './$types';
+import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ cookies, params }: Parameters<PageServerLoad>[0]) => {
-	// await getAllUserProjects(params.userId)
-	console.log(cookies)
+	let userProjects = await getAllUserProjects(params.userId);
+	let username = cookies.get("username");
+	let uid = cookies.get("UserToken")
+	console.log(userProjects)
 	return {
-		userId: cookies.get('userToken'),
-		username: cookies.get('username'),
-		projects: [{ imageUrl: '', projectName: 'prova1', lastModified: '11/11/2002' }]
+		uid,
+		username,
+		userProjects
 	};
 };
 
 export const actions = {
 	addProject: async ({ cookies, request }) => {
 		let data = await request.formData();
-		let uid = cookies.get('userToken') as string;
+		let uid = cookies.get('UserToken') as string;
 		let pid = data.get('pid') as string;
 		let pname = data.get('pname') as string;
 
-		await addProject(uid, pid);
+		await addProject(uid, pid, pname);
 	}
 } satisfies Actions;
