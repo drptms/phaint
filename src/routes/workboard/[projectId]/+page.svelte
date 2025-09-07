@@ -6,7 +6,9 @@
 		currentFillColor,
 		currentStrokeWidth,
 		createShapesStore,
-		createBackgroundFillStore
+		createBackgroundFillStore,
+		vectorDataStore
+
 	} from '$lib/components/CanvasStore';
 	import type {
 		DrawingTool,
@@ -16,7 +18,6 @@
 	import { generateId } from '$lib/components/CanvasUtils';
 	import { showLayout } from '$lib/stores/ui';
 
-	let canvases: CanvasType[] = $state([]);
 
 	// Tools configuration
 	const tools: Tool[] = [
@@ -25,6 +26,8 @@
 		{ id: 'circle' as DrawingTool, name: 'Circle', icon: '⭕' },
 		{ id: 'bucket' as DrawingTool, name: 'Bucket Fill', icon: '🪣' }
 	];
+
+    let canvases: CanvasType[] = $state([]);
 
 	// Colors configuration
 	const colors: string[] = [
@@ -46,8 +49,9 @@
 	//const vectorOutput = $derived(generateVectorOutput($vectorData));
 
 	import { onMount, onDestroy } from 'svelte';
-	import { ProjectWebSocket } from '$lib/api/websocket.svelte';
+	import { operations, ProjectWebSocket, type WorkBoardState } from '$lib/api/websocket.svelte';
 	import type { PageData } from './$types';
+	import { get } from 'svelte/store';
 
 	let { data }: { data: PageData } = $props();
 	let projectId = data.projectId;
@@ -67,12 +71,26 @@
 		} catch (error) {
 			console.error('Failed to connect:', error);
 		}
+		if ($operations.length > 0) {
+			console.log('Loading initial operations:', $operations);
+			loadFromVector($operations);
+		}
 	});
 
 	onDestroy(() => {
 		socket?.disconnect();
 		$showLayout = true;
 		console.log('Disconnected from project:', projectId);
+	});
+
+    $effect(() => {
+        try {
+            if ($operations.length > 0) {
+                loadFromVector($operations);
+            }
+        } catch (e) {
+            console.error('Error in operations subscription:', e);
+        }
 	});
 
 	function addNewPage(): void {
@@ -100,6 +118,23 @@
 	function selectFillColor(color: string): void {
 		currentFillColor.set(color);
 	}
+
+    function parseToVector(): void {
+		socket.sendOperation(
+			canvases.map(c => {
+				const vectorData = vectorDataStore(c.shapes, c.backgroundFill);
+				return { id: c.id, vectorData: get(vectorData) };
+			}) as WorkBoardState[]
+		);
+    }
+
+    export function loadFromVector(operation: WorkBoardState[]): void {
+        canvases = operation.map(op => ({
+            id: op.id,
+            shapes: createShapesStore(op.vectorData.elements),
+            backgroundFill: createBackgroundFillStore(op.vectorData.backgroundFill)
+        }));
+    }
 </script>
 
 <svelte:head>
@@ -205,8 +240,7 @@
 				<h4>Add Behavior:</h4>
 				<!-- Action Buttons -->
 				<div class="form-group action-buttons">
-					<button class="btn btn-primary" type="button"> 💾 Save as Vector </button>
-					<button class="btn btn-secondary" type="button"> 📁 Load Vector </button>
+					<button class="btn btn-primary" type="button" onclick={parseToVector}> 💾 Save as Vector </button>
 				</div>
 			</div>
 		</div>
@@ -343,17 +377,6 @@
 	.btn-primary:hover {
 		background: linear-gradient(135deg, #0056b3, #004085);
 		border-color: #0056b3;
-	}
-
-	.btn-secondary {
-		background: linear-gradient(135deg, #6c757d, #545b62);
-		color: white;
-		border-color: #6c757d;
-	}
-
-	.btn-secondary:hover {
-		background: linear-gradient(135deg, #545b62, #494f54);
-		border-color: #545b62;
 	}
 
     .btn-canvas{

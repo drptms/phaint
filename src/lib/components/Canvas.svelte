@@ -15,7 +15,7 @@
 		VectorPath,
 		VectorRectangle,
 		VectorCircle,
-		CanvasState
+		CanvasState,
 	} from '$lib/components/CanvasTypes';
 	import {
 		generateId,
@@ -24,7 +24,6 @@
 		vectorToSVG,
 		parseSVGPath,
 		saveToLocalStorage,
-		loadFromLocalStorage,
 		downloadAsJSON
 	} from '$lib/components/CanvasUtils';
 
@@ -348,44 +347,11 @@
 		return displayText;
 	}
 
-	// Save and load functionality
-	function saveVector(): void {
-		try {
-			const data = get(vectorData);
-			const stringData = JSON.stringify(data);
-			saveToLocalStorage(STORAGE_KEY, data);
-			downloadAsJSON(data, `svelte_ts_drawing_${Date.now()}.json`);
-			alert('Drawing saved as TypeScript vector data!');
-		} catch (error) {
-			alert('Failed to save drawing: ' + (error as Error).message);
-		}
-	}
-
-	function loadVector(): void {
-		try {
-			const saved = loadFromLocalStorage(STORAGE_KEY);
-			if (saved) {
-				loadVectorData(saved);
-			} else {
-				alert('No saved drawing found. Draw something and save it first!');
-			}
-		} catch (error) {
-			alert('Failed to load drawing: ' + (error as Error).message);
-		}
-	}
-
 	function loadVectorData(data: any): void {
 		shapes.set(data.elements || []);
 		backgroundFill.set(data.backgroundFill || 'none');
 		redrawCanvas();
 		alert('TypeScript vector drawing loaded!');
-	}
-
-	function loadFromStorage(): void {
-		const saved = loadFromLocalStorage(STORAGE_KEY);
-		if (saved) {
-			loadVectorData(saved);
-		}
 	}
 
 	// Reactive canvas redraw when shapes change
@@ -401,6 +367,7 @@
 		}
 	});
 </script>
+
 <canvas
     bind:this={canvas}
     width={CANVAS_WIDTH}

@@ -1,14 +1,9 @@
+import type { VectorData } from '$lib/components/CanvasTypes';
 import { writable } from 'svelte/store';
 
-export interface DrawingOperation {
-	type: string;
-	tool: string;
-	color: string;
-	points: Point[];
-	timestamp: number;
-	userId: string;
+export interface WorkBoardState {
 	id: string;
-	projectId: string;
+	vectorData: VectorData;
 }
 
 export interface Point {
@@ -24,15 +19,15 @@ export interface UserPresence {
 	lastSeen: string;
 }
 
-// export interface WebSocketMessage {
-// 	type: string;
-// 	data: any;
-// 	userId?: string;
-// 	projectId?: string;
-// }
+export interface WebSocketMessage {
+	type: string;
+	data: any;
+	userId?: string;
+	projectId?: string;
+}
 
 export const connectionStatus = writable<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
-export const operations = writable<string>();
+export const operations = writable<WorkBoardState[]>([]);
 export const users = writable<Record<string, UserPresence>>({});
 
 export class ProjectWebSocket {
@@ -77,32 +72,40 @@ export class ProjectWebSocket {
 
 	private handleMessage(event: MessageEvent): void {
 		try {
-			// const message: string = event.data;
-			// operations.update(ops => [...ops, message])
-			// switch (message.type) {
-			// 	case 'operation':
-			// 		operations.update(ops => [...ops, message.data as DrawingOperation]);
-			// 		break;
-			// 	case 'users_state':
-			// 		users.set(message.data);
-			// 		break;
-			// 	case 'cursor_move':
-			// 		// Update user cursor position
-			// 		break;
-			// }
+			const message: WebSocketMessage = JSON.parse(event.data);
+			switch (message.type) {
+				case 'operation':
+					operations.set(message.data as WorkBoardState[]);
+					break;
+				case 'users_state':
+					users.set(message.data);
+					break;
+				case 'cursor_move':
+					// Update user cursor position
+					break;
+			}
 		} catch (error) {
 			console.error('Failed to parse WebSocket message:', error);
 		}
 	}
 
-	sendOperation(data: string): void {
-		this.sendMessage(data);
+	sendOperation(operation: WorkBoardState[]): void {
+		this.sendMessage({
+			type: 'operation',
+			data: operation
+		});
 	}
 
+	sendCursorPosition(x: number, y: number): void {
+		this.sendMessage({
+			type: 'cursor_move',
+			data: { position: { x, y } }
+		});
+	}
 
-	private sendMessage(message: string): void {
+	private sendMessage(message: WebSocketMessage): void {
 		if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-			this.ws.send(message);
+			this.ws.send(JSON.stringify(message));
 		}
 	}
 
