@@ -4,11 +4,11 @@
 	// Accept data from the layout
 	export let data;
 
-	$: userToken = data?.userToken ?? '5';
+	$: userId = data?.userId ?? '5';
 
 	$: links = [
 		{ href: '/', label: 'Home' },
-		{ href: `/${userToken}/dashboard`, label: 'My projects' },
+		{ href: `/${userId}/dashboard`, label: 'My projects' },
 		{ href: '/about', label: 'About' },
 		{ href: '/contact', label: 'Contact' }
 	];

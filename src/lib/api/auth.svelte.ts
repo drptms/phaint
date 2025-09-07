@@ -6,7 +6,7 @@ export async function registerUser(username: string, mail: string, password: str
         headers.set('Content-Type', 'application/json')
         headers.set('Accept', 'application/json')
 
-        const request: RequestInfo = new Request(LOCAL_API_KEY + '/users/register', {
+        const request: RequestInfo = new Request(LOCAL_API_KEY + '/users', {
 					method: 'POST',
 					headers: headers,
 					body: JSON.stringify({ username: username, mail: mail, password: password })
@@ -28,7 +28,7 @@ export async function authenticateUser(mail: string, password: string) {
 			headers.set('Content-Type', 'application/json');
 			headers.set('Accept', 'application/json');
 
-			const request: RequestInfo = new Request(LOCAL_API_KEY + '/users/login', {
+			const request: RequestInfo = new Request(LOCAL_API_KEY + '/users', {
 				method: 'POST',
 				headers: headers,
 				body: JSON.stringify({ mail: mail, password: password })

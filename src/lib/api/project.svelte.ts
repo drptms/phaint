@@ -25,7 +25,7 @@ export async function getAllUserProjects(userId: string) {
 export async function addProject(userId: string, projectId: string, projectName: string) {
 	try {
 		const date = new Date();
-		const today = date.getDay() + "/" + date.getMonth() + "/" + date.getFullYear();
+		const today = date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
 
 		const headers: Headers = new Headers();
 		headers.set('Content-Type', 'application/json');

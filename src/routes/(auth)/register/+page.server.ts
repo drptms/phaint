@@ -11,8 +11,8 @@ export const actions = {
 
 		let response = await registerUser(username, mail, password);
 		if (response != null) {
-			const decoded = jwt.decode(response.UserToken) as any;
-			cookies.set('UserToken', decoded.user_id, { path: '/' });
+			const decoded = jwt.decode(response.userId) as any;
+			cookies.set('userId', decoded.user_id, { path: '/' });
 			cookies.set('username', response.username, { path: '/' });
 		}
 	}
