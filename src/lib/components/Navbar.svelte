@@ -4,7 +4,7 @@
 	// Accept data from the layout
 	export let data;
 
-	$: userId = data?.userId ?? '5';
+	$: userId = data?.userId ?? '';
 
 	$: links = [
 		{ href: '/', label: 'Home' },
@@ -32,19 +32,21 @@
 	<!-- Links Section -->
 	<ul class="links-section">
 		{#each links as link}
-			<li>
-				<a href={link.href} class="link">{link.label}</a>
-			</li>
+			{#if !(link.href === `/${userId}/dashboard` && userId === '')}
+				<li>
+					<a href={link.href} class="link">{link.label}</a>
+				</li>
+			{/if}
 		{/each}
 	</ul>
 
 	<!-- Profile Section -->
 	<!-- svelte-ignore a11y_click_events_have_key_events -->
 	<div class="profile-section" on:click={profileClick}>
-		<img src="/logoPhaint.png" alt="" class="profile-pic" />
+		<img src="/painter.png" alt="" class="profile-pic" />
 	</div>
 
-	<Modal bind:activeTab bind:showModal />
+	<Modal bind:activeTab bind:showModal bind:userId />
 </nav>
 
 <style>
@@ -163,7 +165,7 @@
         display: flex;
         align-items: center;
         cursor: pointer;
-        padding: 0.25rem;
+        padding: 0.05rem;
         border-radius: 50%;
         transition: all 0.3s ease;
         background: rgba(255, 255, 255, 0.05);
@@ -177,10 +179,10 @@
     }
 
     .profile-pic {
-        width: 40px;
-        height: 40px;
+        width: 50px;
+        height: 50px;
         border-radius: 50%;
-        border: 2px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.2);
         transition: all 0.3s ease;
     }
 

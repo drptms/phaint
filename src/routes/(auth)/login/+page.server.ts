@@ -1,4 +1,5 @@
 import type { Actions } from './$types';
+import { goto } from '$app/navigation';
 import { authenticateUser } from '$lib/api/auth.svelte';
 
 export const actions = {

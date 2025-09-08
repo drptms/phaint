@@ -1,8 +1,11 @@
 <script lang="ts">
 	import LoginModal from './LoginModal.svelte';
 	import RegisterModal from './RegisterModal.svelte';
+	import LogoutModal from '$lib/components/LogoutModal.svelte';
 
-	let { activeTab = $bindable(), showModal = $bindable() } = $props();
+	let { activeTab = $bindable(), showModal = $bindable(), userId = $bindable() } = $props();
+
+	console.log(userId);
 
 	function switchModal() {
 		if (activeTab === 'login') {
@@ -13,14 +16,23 @@
 	}
 </script>
 
-{#if activeTab === 'login'}
-	<LoginModal
+<!--{#if userId.length === 0}-->
+
+{#if userId}
+	<LogoutModal
 		bind:showModal={showModal}
 		switchModal={switchModal}
 	/>
 {:else}
-	<RegisterModal
-		bind:showModal={showModal}
-		switchModal={switchModal}
-	/>
+	{#if activeTab === 'login'}
+		<LoginModal
+			bind:showModal={showModal}
+			switchModal={switchModal}
+		/>
+	{:else }
+		<RegisterModal
+			bind:showModal={showModal}
+			switchModal={switchModal}
+		/>
+	{/if}
 {/if}
