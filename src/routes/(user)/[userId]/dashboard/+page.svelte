@@ -82,11 +82,13 @@
 
     .project-container {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        grid-template-columns: repeat(4, 260px);
         gap: 2rem;
         padding: 0 0.5rem 2rem 0.5rem;
         margin-top: 0;
+        justify-content: center; /* centers grid if container is wider */
     }
+
 
     @media (max-width: 600px) {
         .dashboard-header {

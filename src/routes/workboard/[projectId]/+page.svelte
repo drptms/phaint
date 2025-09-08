@@ -94,10 +94,14 @@
 	});
 
 	function addNewPage(): void {
+		const shapes = createShapesStore([]);
+  		const backgroundFill = createBackgroundFillStore('none');
+		
 		const newCanvas: CanvasType = {
 			id: generateId(),
-			shapes: createShapesStore(),
-			backgroundFill: createBackgroundFillStore()
+			shapes,
+			backgroundFill,
+			timestamp: new Date().toISOString()
 		};
 		canvases = [...canvases, newCanvas];
 	}
@@ -122,19 +126,29 @@
     function parseToVector(): void {
 		socket.sendOperation(
 			canvases.map(c => {
-				const vectorData = vectorDataStore(c.shapes, c.backgroundFill);
+				const vectorData = vectorDataStore(c.shapes, c.backgroundFill, c.timestamp);
 				return { id: c.id, vectorData: get(vectorData) };
 			}) as WorkBoardState[]
 		);
     }
 
     export function loadFromVector(operation: WorkBoardState[]): void {
-        canvases = operation.map(op => ({
-            id: op.id,
-            shapes: createShapesStore(op.vectorData.elements),
-            backgroundFill: createBackgroundFillStore(op.vectorData.backgroundFill)
-        }));
-    }
+		console.log('Loading from vector data:', operation);
+        canvases = operation
+			.slice()
+			.sort((a, b) => {
+				// assuming timestamp is a string, parse to Date for comparison
+				const t1: number = new Date(a.vectorData.timestamp).getTime();
+				const t2: number = new Date(b.vectorData.timestamp).getTime();
+				return t1 - t2;
+			})
+			.map(op => ({
+				id: op.id,
+				shapes: createShapesStore(op.vectorData.elements),
+				backgroundFill: createBackgroundFillStore(op.vectorData.backgroundFill),
+				timestamp: op.vectorData.timestamp
+			}));
+}
 </script>
 
 <svelte:head>
@@ -143,6 +157,7 @@
 
 <div class="app-container">
 	<header class="app-header">
+		<button class="btn-nobg" onclick={() => history.go(-1)}>⬅️</button>
 		<h1>🎨 Project Name</h1>
 	</header>
 
@@ -223,8 +238,8 @@
 		<div class="panel canvas-panel">
 			{#each canvases as c}
                 <div class="canvas-container">
-                    <button class="btn-canvas" onclick={() => removeCanvas(c.id)}>❌</button>
-                    <Canvas shapes={c.shapes} backgroundFill={c.backgroundFill} />
+                    <button class="btn-nobg" onclick={() => removeCanvas(c.id)}>❌</button>
+                    <Canvas shapes={c.shapes} backgroundFill={c.backgroundFill} timestamp={c.timestamp} />
                 </div>
 			{/each}
 		</div>
@@ -259,6 +274,16 @@
 		text-align: center;
 		margin-bottom: 30px;
 		height: 5vh;
+		position: relative;
+		display: flex;
+		align-items: center;
+	}
+
+	.app-header button {
+		position: absolute;
+		top: 50%;
+		transform: translateY(-50%);
+		font-size: 1.5rem;
 	}
 
 	.app-header h1 {
@@ -269,6 +294,7 @@
 		-webkit-background-clip: text;
 		-webkit-text-fill-color: transparent;
 		background-clip: text;
+		margin: 0 auto;
 	}
 
 	.app-content {
@@ -379,12 +405,12 @@
 		border-color: #0056b3;
 	}
 
-    .btn-canvas{
+    .btn-nobg{
         border: none;
         background: none;
         align-self: start;
     }
-    .btn-canvas:hover {
+    .btn-nobg:hover {
         border: none;
         align-self: start;
         box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);

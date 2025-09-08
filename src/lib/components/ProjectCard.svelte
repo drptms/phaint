@@ -24,21 +24,23 @@
         flex-direction: column;
         justify-content: space-between;
         align-items: center;
-        width: 20%;
-        height: 250px;
-        border-radius: 8px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        background-color: #fff;
+        width: 90%; /* fixed width for consistent grid */
+        height: 30vh;
+        padding: 1rem; /* add padding for spacing inside */
+        border-radius: 12px; /* slightly larger radius for smoothness */
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        background-color: #ffffff;
         overflow: hidden;
         text-align: center;
-        transition: transform 0.3s ease,
-        box-shadow 0.3s ease;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer; /* clickable indication */
     }
 
     .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        transform: translateY(-8px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
     }
+
 
     .image {
         width: 100%;

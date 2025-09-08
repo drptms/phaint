@@ -46,9 +46,10 @@
     // Props
 	const {
 		shapes,
-		backgroundFill
-	}: { shapes: Writable<VectorElement[]>; backgroundFill: Writable<string> } = $props();
-	const vectorData = vectorDataStore(shapes, backgroundFill);
+		backgroundFill,
+		timestamp
+	}: { shapes: Writable<VectorElement[]>; backgroundFill: Writable<string>; timestamp: string } = $props();
+	const vectorData = vectorDataStore(shapes, backgroundFill, timestamp);
 
 
 	import { onMount } from 'svelte';
