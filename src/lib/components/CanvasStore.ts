@@ -8,6 +8,7 @@ export const currentTool = writable<DrawingTool>('pen' as DrawingTool);
 export const currentStrokeColor = writable<string>('#000000');
 export const currentFillColor = writable<string>('#FF0000');
 export const currentStrokeWidth = writable<number>(2);
+export const selectedShapeIds = writable<Set<string>>(new Set());
 
 
 export function createShapesStore(elements?: VectorElement[]) {

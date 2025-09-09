@@ -17,6 +17,12 @@ export interface VectorShape {
 	stroke: string;
 	strokeWidth: number;
 	fill: string;
+	action: Action;
+}
+
+export interface Action {
+	type: string
+	link: string
 }
 
 export interface VectorPath extends VectorShape {
@@ -54,7 +60,8 @@ export enum DrawingTool {
 	PEN = 'pen',
 	RECTANGLE = 'rectangle',
 	CIRCLE = 'circle',
-	BUCKET = 'bucket'
+	BUCKET = 'bucket',
+	SELECTION = 'selection',
 }
 
 export interface Tool {

@@ -109,33 +109,8 @@
         backdrop-filter: blur(10px);
     }
 
-    input[type="text"]:focus,
-    input[type="password"]:focus {
-        outline: none;
-        border-color: rgba(138, 43, 226, 0.6);
-        box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.15);
-        background: rgba(255, 255, 255, 0.12);
-    }
-
     ::placeholder {
         color: rgba(255, 255, 255, 0.5);
-    }
-
-    .forgot-password {
-        text-align: right;
-        margin-top: -8px;
-        margin-bottom: 8px;
-    }
-
-    .forgot-password a {
-        color: rgba(255, 255, 255, 0.7);
-        text-decoration: none;
-        font-size: 14px;
-        transition: color 0.3s ease;
-    }
-
-    .forgot-password a:hover {
-        color: rgba(138, 43, 226, 0.9);
     }
 
     .login-btn {
@@ -156,47 +131,6 @@
         transform: translateY(-2px);
         box-shadow: 0 12px 35px rgba(138, 43, 226, 0.4);
         background: linear-gradient(135deg, #9932cc 0%, #8a2be2 100%);
-    }
-
-    .divider {
-        text-align: center;
-        margin: 32px 0;
-        position: relative;
-    }
-
-    .divider::before {
-        content: '';
-        position: absolute;
-        top: 50%;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: rgba(255, 255, 255, 0.15);
-    }
-
-    .divider span {
-        background: inherit;
-        padding: 0 20px;
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 14px;
-    }
-
-    .signup-link {
-        text-align: center;
-        margin-top: 24px;
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 14px;
-    }
-
-    .signup-link a {
-        color: rgba(138, 43, 226, 0.9);
-        text-decoration: none;
-        font-weight: 500;
-        transition: color 0.3s ease;
-    }
-
-    .signup-link a:hover {
-        color: #8a2be2;
     }
 
     /* Responsive adjustments */
