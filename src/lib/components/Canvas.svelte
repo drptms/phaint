@@ -47,10 +47,16 @@
 	const {
 		shapes,
 		backgroundFill,
-		timestamp
-	}: { shapes: Writable<VectorElement[]>; backgroundFill: Writable<string>; timestamp: string } = $props();
-	const vectorData = vectorDataStore(shapes, backgroundFill, timestamp);
-
+		timestamp,
+		sendStrokes,
+		sendCanvasMetadata
+	}: { 
+		shapes: Writable<VectorElement[]>; 
+		backgroundFill: Writable<string>; 
+		timestamp: string; 
+		sendStrokes: (stroke: VectorElement) => void;
+		sendCanvasMetadata: (color: string) => void;
+	} = $props();
 
 	import { onMount } from 'svelte';
 
@@ -111,11 +117,14 @@
 				fill: 'none'
 			};
 			shapes.update((current) => [...current, pathShape]);
+			sendStrokes(pathShape);
 			canvasState.currentPath = [];
+
 		} else if (canvasState.tempShapeStart) {
 			const shape = createShapeVector(canvasState.tempShapeStart, coords);
 			if (shape) {
 				shapes.update((current) => [...current, shape]);
+				sendStrokes(shape);
 			}
 			canvasState.tempShapeStart = null;
 		}
@@ -136,6 +145,7 @@
 			shapes.update((current) => {
 				return current.map((shape) => {
 					if (shape.id === targetShape.id) {
+						sendStrokes({ ...shape, fill: get(currentFillColor) });
 						return { ...shape, fill: get(currentFillColor) };
 					}
 					return shape;
@@ -144,6 +154,7 @@
 		} else {
 			// Fill background
 			backgroundFill.set(get(currentFillColor));
+			sendCanvasMetadata(get(currentFillColor));
 		}
 
 		redrawCanvas();
@@ -237,7 +248,7 @@
 
 	function drawVectorItem(item: VectorElement): void {
 		// Draw fill first
-		if (item.fill && item.fill !== 'none') {
+		if (item && item.fill && item.fill !== 'none') {
 			ctx.fillStyle = item.fill;
 
 			switch (item.type) {
@@ -309,50 +320,6 @@
 			ctx.lineTo(canvasState.currentPath[i].x, canvasState.currentPath[i].y);
 		}
 		ctx.stroke();
-	}
-
-	// Vector data display
-	function generateVectorOutput(data: any): string {
-		if (!data || (data.elements.length === 0 && data.backgroundFill === 'none')) {
-			return 'Draw and fill shapes to see vector data...';
-		}
-
-		let displayText = `Svelte + TypeScript Vector Data (${data.elements.length} elements):\n\n`;
-
-		if (data.backgroundFill !== 'none') {
-			displayText += `Background Fill: ${data.backgroundFill}\n\n`;
-		}
-
-		data.elements.forEach((element: any, i: number) => {
-			displayText += `Element ${i + 1} (ID: ${element.id}):\n`;
-			switch (element.type) {
-				case 'path':
-					displayText += `  Type: Path (${element.points.length} points)\n`;
-					break;
-				case 'rectangle':
-					displayText += `  Type: Rectangle\n`;
-					displayText += `  Bounds: (${element.x}, ${element.y}) ${element.width}×${element.height}\n`;
-					break;
-				case 'circle':
-					displayText += `  Type: Circle\n`;
-					displayText += `  Center: (${element.cx}, ${element.cy}) Radius: ${element.radius.toFixed(1)}\n`;
-					break;
-			}
-
-			if (element.fill && element.fill !== 'none') {
-				displayText += `  Fill: ${element.fill}\n`;
-			}
-			displayText += `  Stroke: ${element.stroke} (${element.strokeWidth}px)\n\n`;
-		});
-
-		return displayText;
-	}
-
-	function loadVectorData(data: any): void {
-		shapes.set(data.elements || []);
-		backgroundFill.set(data.backgroundFill || 'none');
-		redrawCanvas();
-		alert('TypeScript vector drawing loaded!');
 	}
 
 	// Reactive canvas redraw when shapes change

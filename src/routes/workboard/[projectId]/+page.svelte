@@ -13,7 +13,10 @@
 	import type {
 		DrawingTool,
 		Tool,
-		CanvasType
+		CanvasType,
+
+		VectorElement
+
 	} from '$lib/components/CanvasTypes';
 	import { generateId } from '$lib/components/CanvasUtils';
 	import { showLayout } from '$lib/stores/ui';
@@ -51,7 +54,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { operations, ProjectWebSocket, type WorkBoardState } from '$lib/api/websocket.svelte';
 	import type { PageData } from './$types';
-	import { get } from 'svelte/store';
+	import { get, writable } from 'svelte/store';
 
 	let { data }: { data: PageData } = $props();
 	let projectId = data.projectId;
@@ -94,8 +97,8 @@
 	});
 
 	function addNewPage(): void {
-		const shapes = createShapesStore([]);
-  		const backgroundFill = createBackgroundFillStore('none');
+		const shapes = createShapesStore();
+  		const backgroundFill = createBackgroundFillStore();
 		
 		const newCanvas: CanvasType = {
 			id: generateId(),
@@ -104,10 +107,10 @@
 			timestamp: new Date().toISOString()
 		};
 		canvases = [...canvases, newCanvas];
-	}
-
-    function removeCanvas(canvasId: string): void {
-		canvases = canvases.filter(c => c.id !== canvasId);
+		addCanvas({
+			id: newCanvas.id, 
+			vectorData: get(vectorDataStore(shapes, backgroundFill, newCanvas.timestamp))
+		} as WorkBoardState);
 	}
 
 	// Tool and color selection
@@ -123,18 +126,42 @@
 		currentFillColor.set(color);
 	}
 
-    function parseToVector(): void {
+    function sendEntireWorkspace(): void {
 		socket.sendOperation(
 			canvases.map(c => {
 				const vectorData = vectorDataStore(c.shapes, c.backgroundFill, c.timestamp);
 				return { id: c.id, vectorData: get(vectorData) };
-			}) as WorkBoardState[]
+			}) as WorkBoardState[],
+			"load"
+		);
+    }
+
+	function sendSingleVector(canvasId: string, stroke: VectorElement): void {
+		socket.sendStroke(canvasId, stroke, "shape");
+    }
+
+	function sendSingleCanvasBackground(canvasID: string, backgroundFill: string): void {
+		socket.sendBackground(canvasID, backgroundFill, "canvas");
+}
+
+	function addCanvas(canvas: WorkBoardState): void {
+		socket.sendOperation(
+			[canvas] as WorkBoardState[],
+			"add"
+		);
+    }
+
+	function removeCanvas(canvasID: string): void {
+		canvases = canvases.filter(c => c.id !== canvasID);
+		socket.sendRemoveCanvas(
+			canvasID,
+			"remove"
 		);
     }
 
     export function loadFromVector(operation: WorkBoardState[]): void {
-		console.log('Loading from vector data:', operation);
-        canvases = operation
+
+		canvases = operation
 			.slice()
 			.sort((a, b) => {
 				// assuming timestamp is a string, parse to Date for comparison
@@ -239,7 +266,13 @@
 			{#each canvases as c}
                 <div class="canvas-container">
                     <button class="btn-nobg" onclick={() => removeCanvas(c.id)}>❌</button>
-                    <Canvas shapes={c.shapes} backgroundFill={c.backgroundFill} timestamp={c.timestamp} />
+                    <Canvas 
+						shapes={c.shapes} 
+						backgroundFill={c.backgroundFill} 
+						timestamp={c.timestamp} 
+						sendStrokes={(stroke: VectorElement) => sendSingleVector(c.id, stroke)}
+						sendCanvasMetadata={(color: string) => sendSingleCanvasBackground(c.id, color)}
+						/>
                 </div>
 			{/each}
 		</div>
@@ -255,7 +288,7 @@
 				<h4>Add Behavior:</h4>
 				<!-- Action Buttons -->
 				<div class="form-group action-buttons">
-					<button class="btn btn-primary" type="button" onclick={parseToVector}> 💾 Save as Vector </button>
+					<button class="btn btn-primary" type="button" onclick={sendEntireWorkspace}> 💾 Save as Vector </button>
 				</div>
 			</div>
 		</div>
