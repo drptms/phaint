@@ -45,3 +45,12 @@ export async function addProject(userId: string, projectId: string, projectName:
 		return null;
 	}
 }
+
+export async function acceptInvitation(userId: string, inviteLink: string) {
+	try {
+		console.log("Invite link: " + inviteLink);
+	} catch (error) {
+		console.error(error);
+		return null;
+	}
+}

@@ -159,6 +159,13 @@
 		);
     }
 
+	function createInvitationLink(): void {
+		const link = `https://your-invitation-link.com/${projectId}`;
+		navigator.clipboard.writeText(link).then(() => {
+			alert('Invitation link copied to clipboard!');
+		});
+	}
+
     export function loadFromVector(operation: WorkBoardState[]): void {
 
 		canvases = operation
@@ -287,8 +294,9 @@
 				</div>
 				<h4>Add Behavior:</h4>
 				<!-- Action Buttons -->
+				<h4>Invitation:</h4>
 				<div class="form-group action-buttons">
-					<button class="btn btn-primary" type="button" onclick={sendEntireWorkspace}> 💾 Save as Vector </button>
+					<button class="btn btn-primary" type="button" onclick={createInvitationLink}> 🔗 Invitation Link </button>
 				</div>
 			</div>
 		</div>

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import InvitationModal from '$lib/components/InvitationModal.svelte';
 	import ProjectCard from '$lib/components/ProjectCard.svelte';
 	import ProjectModal from '$lib/components/ProjectModal.svelte';
 	import type { PageData } from './$types';
@@ -7,6 +8,7 @@
 	let user = data.username;
 
 	let showModal = $state(false);
+	let showInvitationModal = $state(false);
 
 	function openModal() {
 		showModal = true;
@@ -14,19 +16,37 @@
 	function closeModal() {
 		showModal = false;
 	}
+
+    function openInvitationModal() {
+		showInvitationModal = true;
+	}
+	function closeInvitationModal() {
+		showInvitationModal = false;
+	}
 </script>
 
 <div class="dashboard-header">
 	<h1 class="dashboard-greeting">Hello {user}</h1>
-	<button class="add-project-btn" onclick={openModal}>
-		<!-- svg unchanged -->
-		Add Project
-	</button>
-</div>
+    <div class="button-group">
+        <button class="add-project-btn" onclick={openInvitationModal}>
+            <!-- svg unchanged -->
+            Accept Invitation
+        </button>
+        <button class="add-project-btn" onclick={openModal}>
+            <!-- svg unchanged -->
+            Add Project
+        </button>
+    </div>
+</div>  
 
 <ProjectModal
 	open={showModal}
 	onClose={closeModal}
+/>
+
+<InvitationModal
+	open={showInvitationModal}
+	onClose={closeInvitationModal}
 />
 
 <div class="project-container">
@@ -55,6 +75,11 @@
         text-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
         letter-spacing: -1px;
         margin: 0;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 1rem;
     }
 
     .add-project-btn {
