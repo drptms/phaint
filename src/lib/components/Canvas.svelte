@@ -172,8 +172,6 @@
 
 	function handleCanvasMouseMove(event: MouseEvent): void {
 		sendCursorPosition(getCanvasCoordinates(event, canvas));
-		//console.log("Mouse Move Event:", { clientX: event.clientX, clientY: event.clientY });
-		if (!canvasState.isDrawing || get(currentTool) === 'bucket') return;
 
 		const coords = getCanvasCoordinates(event, canvas);
 		if (get(currentTool) === 'selection') {
@@ -208,7 +206,7 @@
 				if (get(selectedShapeIds).size > 0) {
 					isDraggingSelection = true;
 					dragStartPos = coords;
-					captureInitialShapePositions();
+					captureInitialShapePositions(event);
 				}
 			} else {
 				// End dragging shapes
@@ -320,7 +318,7 @@
 	}
 
 	// Record initial shape positions before drag start for relative movement
-	function captureInitialShapePositions(): void {
+	function captureInitialShapePositions(event: MouseEvent): void {
 		initialShapePositions.clear();
 		const shapesArray = get(shapes);
 		const selectedIds = get(selectedShapeIds);
