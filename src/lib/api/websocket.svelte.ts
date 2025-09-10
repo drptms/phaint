@@ -16,7 +16,7 @@ export interface UserPresence {
 	cursor?: Point;
 	color: string;
 	isDrawing: boolean;
-	lastSeen: string;
+	lastSeen: { canvasId: string; position: { x: number; y: number } };
 }
 
 export interface WebSocketMessage {
@@ -124,7 +124,20 @@ export class ProjectWebSocket {
 					users.set(message.data);
 					break;
 				case 'cursor_move':
-					// Update user cursor position
+					users.update((current) => {
+						const user = current[message.data.userId];
+						if (user) {
+							user.lastSeen = { 
+								canvasId: message.data.canvasId, 
+								position: { 
+									x: message.data.position.x, 
+									y: message.data.position.y 
+								} 
+							};
+							current[message.data.userId] = user;
+						}
+						return current;
+					});
 					break;
 			}
 		} catch (error) {
@@ -137,6 +150,17 @@ export class ProjectWebSocket {
 			type: 'operation',
 			subtype: subtype,
 			data: operation
+		});
+	}
+
+	sendCursor(canvasId: string, point: Point): void {
+		this.sendMessage({
+			type: 'cursor_move',
+			data: { 
+				userId: this.userId, 
+				canvasId: canvasId,
+				position: point
+			}
 		});
 	}
 
@@ -168,13 +192,6 @@ export class ProjectWebSocket {
 				id: canvasID,
 				stroke: stroke
 			}
-		});
-	}
-
-	sendCursorPosition(x: number, y: number): void {
-		this.sendMessage({
-			type: 'cursor_move',
-			data: { position: { x, y } }
 		});
 	}
 
