@@ -21,10 +21,7 @@
 		generateId,
 		getCanvasCoordinates,
 		findShapeAtPoint,
-		vectorToSVG,
-		parseSVGPath,
-		saveToLocalStorage,
-		downloadAsJSON
+		pointInRectangle, pointInCircle, pointInPath
 	} from '$lib/components/CanvasUtils';
 
 	// Canvas references
@@ -34,7 +31,6 @@
 	// Constants
 	const CANVAS_WIDTH = 800;
 	const CANVAS_HEIGHT = 600;
-	const STORAGE_KEY = 'svelteTypescriptVectorDrawing';
 
 	// Canvas state
 	let canvasState: CanvasState = {
@@ -74,28 +70,17 @@
 	function isPointInVectorElement(point: Point, element: VectorElement): boolean {
 		switch (element.type) {
 			case 'rectangle':
-				// Check if point is inside the rectangle bounds
-				return (
-					point.x >= element.x &&
-					point.x <= element.x + element.width &&
-					point.y >= element.y &&
-					point.y <= element.y + element.height
-				);
+				return pointInRectangle(point, element.x, element.y, element.width, element.height);
 			case 'circle':
-				// Check if point is within the circle using distance
-				const dx = point.x - element.cx;
-				const dy = point.y - element.cy;
-				return dx * dx + dy * dy <= element.radius * element.radius;
+				return pointInCircle(point, element.cx, element.cy, element.radius);
 			case 'path':
-				return false;
+				return pointInPath(point, element.points, canvas.width, canvas.height);
 			default:
 				return false;
 		}
 	}
 
-
 	import { createEventDispatcher } from 'svelte';
-
 	const dispatch = createEventDispatcher();
 
 	// Canvas event handlers
@@ -110,7 +95,6 @@
 			selectedShapeIds.set(new Set()); // Clear selection at start
 		} else if (get(currentTool) === 'cursor') {
 			const coords = getCanvasCoordinates(event, canvas);
-			let elementId: string = '';
 			get(vectorData).elements.forEach(element => {
 				if (isPointInVectorElement(coords, element)) {
 					dispatch('clickedElement', element);
@@ -135,18 +119,15 @@
 	}
 
 	function handleCanvasMouseMove(event: MouseEvent): void {
+		const coords = getCanvasCoordinates(event, canvas);
 		if (get(currentTool) === 'selection') {
 			if (!selectionMarqueeStart) return;
-
-			const coords = getCanvasCoordinates(event, canvas);
-
 			// User is dragging marquee rectangle
 			selectionMarqueeEnd = coords;
 			redrawCanvas();
 			drawSelectionMarquee(selectionMarqueeStart, selectionMarqueeEnd);
 		} else {
 			if (!canvasState.isDrawing || get(currentTool) === 'bucket') return;
-			const coords = getCanvasCoordinates(event, canvas);
 			if (get(currentTool) === 'pen') {
 				canvasState.currentPath.push(coords);
 				redrawCanvas();
@@ -195,11 +176,13 @@
 					action: { type: 'none', link: ''}
 				};
 				shapes.update((current) => [...current, pathShape]);
+				sendStrokes(pathShape)
 				canvasState.currentPath = [];
 			} else if (canvasState.tempShapeStart) {
 				const shape = createShapeVector(canvasState.tempShapeStart, coords);
 				if (shape) {
 					shapes.update((current) => [...current, shape]);
+					sendStrokes(shape)
 				}
 				canvasState.tempShapeStart = null;
 			}
