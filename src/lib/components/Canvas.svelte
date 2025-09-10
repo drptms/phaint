@@ -47,18 +47,25 @@
 	const {
 		shapes,
 		backgroundFill,
+		canvasId,
+		clientId,
 		timestamp,
 		sendStrokes,
-		sendCanvasMetadata
+		sendCanvasMetadata,
+		sendCursorPosition
 	}: { 
 		shapes: Writable<VectorElement[]>; 
 		backgroundFill: Writable<string>; 
 		timestamp: string; 
+		canvasId: string;
+		clientId: string | null;
 		sendStrokes: (stroke: VectorElement) => void;
 		sendCanvasMetadata: (color: string) => void;
+		sendCursorPosition: (point: Point) => void;
 	} = $props();
 
 	import { onMount } from 'svelte';
+	import { users } from '$lib/api/websocket.svelte';
 
 	onMount(async () => {
 		ctx = canvas.getContext('2d')!;
@@ -70,6 +77,51 @@
 		} else {
 			startDrawing(event);
 		}
+	}
+
+	$effect(() => {
+        try {
+            if ($users && clientId) {
+                for (const [userId, presence] of Object.entries($users)) {
+					if (clientId !== userId && presence.lastSeen.canvasId === canvasId) {
+						drawPeerPointer(presence.lastSeen.position, userId, presence.color);
+					}
+				}
+            }
+        } catch (e) {
+            console.error('Error in operations subscription:', e);
+        }
+	});
+
+	function drawPeerPointer(
+		position: { x: number; y: number },
+		name: string,
+		color: string = "rgba(0, 0, 0, 0.3)"
+	) {
+		redrawCanvas();
+		const radius = 8;
+
+		ctx.save();
+		ctx.shadowColor = color;
+		ctx.shadowBlur = 10;
+		ctx.shadowOffsetX = 0;
+		ctx.shadowOffsetY = 0;
+
+		// Draw the pointer circle
+		ctx.fillStyle = color;
+		ctx.beginPath();
+		ctx.arc(position.x, position.y, radius, 0, Math.PI * 2);
+		ctx.fill();
+
+		// Draw the name below the circle
+		ctx.shadowColor = "transparent"; // Disable shadow for text
+		ctx.fillStyle = "black"; // Text color
+		ctx.font = "12px Arial";
+		ctx.textAlign = "center"; // Align text center under the circle
+		if (name.length > 8) name = name.slice(0, 8) + '...';
+		ctx.fillText(name, position.x, position.y + radius + 15);
+
+		ctx.restore();
 	}
 
 	function startDrawing(event: MouseEvent): void {
@@ -86,6 +138,8 @@
 	}
 
 	function handleCanvasMouseMove(event: MouseEvent): void {
+		sendCursorPosition(getCanvasCoordinates(event, canvas));
+		//console.log("Mouse Move Event:", { clientX: event.clientX, clientY: event.clientY });
 		if (!canvasState.isDrawing || get(currentTool) === 'bucket') return;
 
 		const coords = getCanvasCoordinates(event, canvas);
@@ -133,6 +187,7 @@
 	function handleCanvasMouseLeave(): void {
 		canvasState.isDrawing = false;
 		isDrawing.set(false);
+		redrawCanvas();
 	}
 
 	// Bucket fill implementation

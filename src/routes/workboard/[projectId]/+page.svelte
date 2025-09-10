@@ -8,19 +8,10 @@
 		createShapesStore,
 		createBackgroundFillStore,
 		vectorDataStore
-
 	} from '$lib/components/CanvasStore';
-	import type {
-		DrawingTool,
-		Tool,
-		CanvasType,
-
-		VectorElement
-
-	} from '$lib/components/CanvasTypes';
+	import type { DrawingTool, Tool, CanvasType, VectorElement } from '$lib/components/CanvasTypes';
 	import { generateId } from '$lib/components/CanvasUtils';
 	import { showLayout } from '$lib/stores/ui';
-
 
 	// Tools configuration
 	const tools: Tool[] = [
@@ -30,7 +21,7 @@
 		{ id: 'bucket' as DrawingTool, name: 'Bucket Fill', icon: '🪣' }
 	];
 
-    let canvases: CanvasType[] = $state([]);
+	let canvases: CanvasType[] = $state([]);
 
 	// Colors configuration
 	const colors: string[] = [
@@ -52,7 +43,12 @@
 	//const vectorOutput = $derived(generateVectorOutput($vectorData));
 
 	import { onMount, onDestroy } from 'svelte';
-	import { operations, ProjectWebSocket, type WorkBoardState } from '$lib/api/websocket.svelte';
+	import {
+		operations,
+		ProjectWebSocket,
+		users,
+		type WorkBoardState
+	} from '$lib/api/websocket.svelte';
 	import type { PageData } from './$types';
 	import { get, writable } from 'svelte/store';
 
@@ -86,20 +82,20 @@
 		console.log('Disconnected from project:', projectId);
 	});
 
-    $effect(() => {
-        try {
-            if ($operations.length > 0) {
-                loadFromVector($operations);
-            }
-        } catch (e) {
-            console.error('Error in operations subscription:', e);
-        }
+	$effect(() => {
+		try {
+			if ($operations.length > 0) {
+				loadFromVector($operations);
+			}
+		} catch (e) {
+			console.error('Error in operations subscription:', e);
+		}
 	});
 
 	function addNewPage(): void {
 		const shapes = createShapesStore();
-  		const backgroundFill = createBackgroundFillStore();
-		
+		const backgroundFill = createBackgroundFillStore();
+
 		const newCanvas: CanvasType = {
 			id: generateId(),
 			shapes,
@@ -108,7 +104,7 @@
 		};
 		canvases = [...canvases, newCanvas];
 		addCanvas({
-			id: newCanvas.id, 
+			id: newCanvas.id,
 			vectorData: get(vectorDataStore(shapes, backgroundFill, newCanvas.timestamp))
 		} as WorkBoardState);
 	}
@@ -126,41 +122,38 @@
 		currentFillColor.set(color);
 	}
 
-    function sendEntireWorkspace(): void {
+	function sendEntireWorkspace(): void {
 		socket.sendOperation(
-			canvases.map(c => {
+			canvases.map((c) => {
 				const vectorData = vectorDataStore(c.shapes, c.backgroundFill, c.timestamp);
 				return { id: c.id, vectorData: get(vectorData) };
 			}) as WorkBoardState[],
-			"load"
+			'load'
 		);
-    }
+	}
 
 	function sendSingleVector(canvasId: string, stroke: VectorElement): void {
-		socket.sendStroke(canvasId, stroke, "shape");
-    }
+		socket.sendStroke(canvasId, stroke, 'shape');
+	}
 
 	function sendSingleCanvasBackground(canvasID: string, backgroundFill: string): void {
-		socket.sendBackground(canvasID, backgroundFill, "canvas");
-}
+		socket.sendBackground(canvasID, backgroundFill, 'canvas');
+	}
 
 	function addCanvas(canvas: WorkBoardState): void {
-		socket.sendOperation(
-			[canvas] as WorkBoardState[],
-			"add"
-		);
-    }
+		socket.sendOperation([canvas] as WorkBoardState[], 'add');
+	}
 
 	function removeCanvas(canvasID: string): void {
-		canvases = canvases.filter(c => c.id !== canvasID);
-		socket.sendRemoveCanvas(
-			canvasID,
-			"remove"
-		);
-    }
+		canvases = canvases.filter((c) => c.id !== canvasID);
+		socket.sendRemoveCanvas(canvasID, 'remove');
+	}
 
-    export function loadFromVector(operation: WorkBoardState[]): void {
+	function sendCursor(canvasId: string, point: { x: number; y: number }): void {
+		socket.sendCursor(canvasId, point);
+	}
 
+	export function loadFromVector(operation: WorkBoardState[]): void {
 		canvases = operation
 			.slice()
 			.sort((a, b) => {
@@ -169,13 +162,13 @@
 				const t2: number = new Date(b.vectorData.timestamp).getTime();
 				return t1 - t2;
 			})
-			.map(op => ({
+			.map((op) => ({
 				id: op.id,
 				shapes: createShapesStore(op.vectorData.elements),
 				backgroundFill: createBackgroundFillStore(op.vectorData.backgroundFill),
 				timestamp: op.vectorData.timestamp
 			}));
-}
+	}
 </script>
 
 <svelte:head>
@@ -264,16 +257,19 @@
 		<!-- Center Panel: Canvas -->
 		<div class="panel canvas-panel">
 			{#each canvases as c}
-                <div class="canvas-container">
-                    <button class="btn-nobg" onclick={() => removeCanvas(c.id)}>❌</button>
-                    <Canvas 
-						shapes={c.shapes} 
-						backgroundFill={c.backgroundFill} 
-						timestamp={c.timestamp} 
+				<div class="canvas-container">
+					<button class="btn-nobg" onclick={() => removeCanvas(c.id)}>❌</button>
+					<Canvas
+						shapes={c.shapes}
+						backgroundFill={c.backgroundFill}
+						timestamp={c.timestamp}
+						canvasId={c.id}
+						clientId={userId}
 						sendStrokes={(stroke: VectorElement) => sendSingleVector(c.id, stroke)}
 						sendCanvasMetadata={(color: string) => sendSingleCanvasBackground(c.id, color)}
-						/>
-                </div>
+						sendCursorPosition={(point: { x: number; y: number }) => sendCursor(c.id, point)}
+					/>
+				</div>
 			{/each}
 		</div>
 
@@ -288,7 +284,26 @@
 				<h4>Add Behavior:</h4>
 				<!-- Action Buttons -->
 				<div class="form-group action-buttons">
-					<button class="btn btn-primary" type="button" onclick={sendEntireWorkspace}> 💾 Save as Vector </button>
+					<button class="btn btn-primary" type="button" onclick={sendEntireWorkspace}>
+						💾 Save as Vector
+					</button>
+				</div>
+				<div class="user-list">
+					{#each Object.values($users) as user}
+						{#if user.userId !== userId}
+							<div class="user-item" title={`User ID: ${user.userId}, Color: ${user.color}`}>
+								<div
+									class="user-color-indicator"
+									style="background-color: {user.color}"
+									aria-label={`Color for user ${user.userId}`}
+								></div>
+								<div class="user-text">
+									<p class="user-id" title={user.userId}>{user.userId}</p>
+									<p class="user-color" title={user.color}>{user.color}</p>
+								</div>
+							</div>
+						{/if}
+					{/each}
 				</div>
 			</div>
 		</div>
@@ -336,7 +351,7 @@
 		gap: 15px;
 		min-height: 100%;
 		max-width: 100%;
-        min-width: 90vw;
+		min-width: 90vw;
 		height: 80vh;
 		overflow: auto;
 	}
@@ -366,11 +381,11 @@
 		padding-bottom: 10px;
 	}
 
-    .canvas-container {
-        margin-bottom: 10px;
-    	display: flex;
-    	flex-direction: row;
-    }
+	.canvas-container {
+		margin-bottom: 10px;
+		display: flex;
+		flex-direction: row;
+	}
 
 	.tools-panel h3,
 	.data-panel h3 {
@@ -438,17 +453,17 @@
 		border-color: #0056b3;
 	}
 
-    .btn-nobg{
-        border: none;
-        background: none;
-        align-self: start;
-    }
-    .btn-nobg:hover {
-        border: none;
-        align-self: start;
-        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
-        cursor: pointer;
-    }
+	.btn-nobg {
+		border: none;
+		background: none;
+		align-self: start;
+	}
+	.btn-nobg:hover {
+		border: none;
+		align-self: start;
+		box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+		cursor: pointer;
+	}
 
 	.color-palette {
 		display: grid;
@@ -522,6 +537,60 @@
 		font-size: 1.1rem;
 	}
 
+	.user-list {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		max-height: 150px;
+		overflow-y: auto;
+		padding-right: 6px; /* For scrollbar space */
+	}
+
+	.user-item {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		padding: 6px 10px;
+		border-radius: 8px;
+		background-color: #fafafa;
+		border: 1px solid #ddd;
+		white-space: nowrap;
+	}
+
+	.user-color-indicator {
+		width: 22px;
+		height: 22px;
+		border-radius: 50%;
+		border: 2px solid #ccc;
+		flex-shrink: 0;
+	}
+
+	.user-text {
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		min-width: 0; /* Important for text truncation in flex */
+	}
+
+	.user-id,
+	.user-color {
+		margin: 0;
+		font-size: 14px;
+		line-height: 1.2;
+		color: #333;
+		text-overflow: ellipsis;
+		overflow: hidden;
+	}
+
+	.user-id {
+		font-weight: 600;
+	}
+
+	.user-color {
+		font-family: monospace;
+		font-size: 13px;
+		color: #666;
+	}
 	/* Responsive design */
 	@media (max-width: 1200px) {
 		.app-content {
