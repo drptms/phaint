@@ -7,9 +7,16 @@
 		currentStrokeWidth,
 		createShapesStore,
 		createBackgroundFillStore,
-		vectorDataStore
+		vectorDataStore, 
+		selectedShapeIds
+
 	} from '$lib/components/CanvasStore';
-	import type { DrawingTool, Tool, CanvasType, VectorElement } from '$lib/components/CanvasTypes';
+	import type {
+		DrawingTool,
+		Tool,
+		CanvasType,
+		VectorElement
+	} from '$lib/components/CanvasTypes';
 	import { generateId } from '$lib/components/CanvasUtils';
 	import { showLayout } from '$lib/stores/ui';
 
@@ -18,10 +25,13 @@
 		{ id: 'pen' as DrawingTool, name: 'Free Draw', icon: '✏️' },
 		{ id: 'rectangle' as DrawingTool, name: 'Rectangle', icon: '⬜' },
 		{ id: 'circle' as DrawingTool, name: 'Circle', icon: '⭕' },
-		{ id: 'bucket' as DrawingTool, name: 'Bucket Fill', icon: '🪣' }
+		{ id: 'bucket' as DrawingTool, name: 'Bucket Fill', icon: '🪣' },
+		{ id: 'selection' as DrawingTool, name: 'Selection', icon: '🔲' },
+		{ id: 'cursor' as DrawingTool, name: 'Cursor', icon: '👆🏼' }
 	];
 
 	let canvases: CanvasType[] = $state([]);
+	let canvasRefs: HTMLDivElement[] = $state([]);
 
 	// Colors configuration
 	const colors: string[] = [
@@ -71,7 +81,6 @@
 			console.error('Failed to connect:', error);
 		}
 		if ($operations.length > 0) {
-			console.log('Loading initial operations:', $operations);
 			loadFromVector($operations);
 		}
 	});
@@ -79,7 +88,6 @@
 	onDestroy(() => {
 		socket?.disconnect();
 		$showLayout = true;
-		console.log('Disconnected from project:', projectId);
 	});
 
 	$effect(() => {
@@ -107,6 +115,45 @@
 			id: newCanvas.id,
 			vectorData: get(vectorDataStore(shapes, backgroundFill, newCanvas.timestamp))
 		} as WorkBoardState);
+	}
+
+	const showBehaviorModal = writable(false);
+
+	const availableActions = [
+		{ label: 'goto', value: 'goto' },
+		{ label: 'No action', value: 'none' }
+	];
+
+	let selectedAction = $state('none');
+	let gotoPageNumber = $state(1);
+
+	function addBehavior(): void {
+		showBehaviorModal.set(true);
+	}
+
+	function confirmBehavior(): void {
+		if (selectedAction === 'none') {
+			showBehaviorModal.set(false);
+			return;
+		}
+
+		canvases.forEach(canvas => {
+			const shapesArray = get(canvas.shapes);
+			shapesArray.forEach(shape => {
+				if (get(selectedShapeIds).has(shape.id)) {
+					if (selectedAction.startsWith('goto')) {
+						shape.action = {
+							type: 'goto',
+							link: gotoPageNumber.toString()
+						};
+					}
+				}
+			});
+
+			canvas.shapes.set(shapesArray); // Update the store after modification
+		});
+
+		showBehaviorModal.set(false);
 	}
 
 	// Tool and color selection
@@ -168,6 +215,17 @@
 				backgroundFill: createBackgroundFillStore(op.vectorData.backgroundFill),
 				timestamp: op.vectorData.timestamp
 			}));
+	}
+
+	function focusCanvas(index: number) {
+		const el = canvasRefs[index];
+		if (el) {
+			el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+		}
+	}
+
+	function removeCanvasRef(index: number) {
+		canvasRefs.splice(index, 1);
 	}
 </script>
 
@@ -256,19 +314,25 @@
 
 		<!-- Center Panel: Canvas -->
 		<div class="panel canvas-panel">
-			{#each canvases as c}
-				<div class="canvas-container">
-					<button class="btn-nobg" onclick={() => removeCanvas(c.id)}>❌</button>
-					<Canvas
+			{#each canvases as c, i}
+				<div class="canvas-container" bind:this={canvasRefs[i]}>
+					<button class="btn-nobg" onclick={() => {removeCanvas(c.id); removeCanvasRef(i)}}>❌</button>
+					<Canvas 
 						shapes={c.shapes}
 						backgroundFill={c.backgroundFill}
 						timestamp={c.timestamp}
+						sendStrokes={(stroke: VectorElement) => sendSingleVector(c.id, stroke)}
+						sendCanvasMetadata={(color) => sendSingleCanvasBackground(c.id, color.toString())}
 						canvasId={c.id}
 						clientId={userId}
-						sendStrokes={(stroke: VectorElement) => sendSingleVector(c.id, stroke)}
-						sendCanvasMetadata={(color: string) => sendSingleCanvasBackground(c.id, color)}
 						sendCursorPosition={(point: { x: number; y: number }) => sendCursor(c.id, point)}
-					/>
+						on:clickedElement={(event) => {
+							const element: VectorElement = event.detail;
+								switch (element.action.type) {
+									case "goto":
+										focusCanvas(parseInt(element.action.link) - 1)
+									}
+								}} />
 				</div>
 			{/each}
 		</div>
@@ -279,14 +343,12 @@
 				<h3>Utils ⚡</h3>
 				<h4>Add Page:</h4>
 				<div class="form-group action-buttons">
-					<button onclick={addNewPage} class="btn btn-primary" type="button"> ➕ New Page </button>
+					<button onclick={addNewPage} class="btn btn-primary" type="button"> ➕ New Page</button>
 				</div>
 				<h4>Add Behavior:</h4>
 				<!-- Action Buttons -->
 				<div class="form-group action-buttons">
-					<button class="btn btn-primary" type="button" onclick={sendEntireWorkspace}>
-						💾 Save as Vector
-					</button>
+					<button class="btn btn-primary" type="button" onclick={addBehavior}> 💥 Add a behavior</button>
 				</div>
 				<div class="user-list">
 					{#each Object.values($users) as user}
@@ -310,232 +372,376 @@
 	</div>
 </div>
 
+{#if $showBehaviorModal}
+	<div class="modal-backdrop">
+		<div class="modal">
+			<h3>Select an action</h3>
+
+			<select bind:value={selectedAction}>
+				{#each availableActions as action}
+					<option value={action.value}>{action.label}</option>
+				{/each}
+			</select>
+
+			{#if selectedAction === 'goto'}
+				<div class="form-group" style="margin-top: 12px;">
+					<label for="gotoPage" class="form-label">Go to page number:</label>
+					<input
+						id="gotoPage"
+						type="number"
+						min="1"
+						bind:value={gotoPageNumber}
+						class="number-input"
+						style="width: 100%; padding: 6px 10px; border-radius: 8px; border: 2px solid #ddd; font-size: 1rem;"
+					/>
+				</div>
+			{/if}
+
+			<div class="modal-buttons">
+				<button class="btn btn-primary" onclick={confirmBehavior}>Apply</button>
+				<button class="btn" onclick={() => showBehaviorModal.set(false)}>Cancel</button>
+			</div>
+		</div>
+	</div>
+{/if}
+
+
 <style>
-	.app-container {
-		margin: 0 auto;
-		padding: 20px;
-		max-height: 100%;
-		overflow: hidden;
-	}
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
 
-	.app-header {
-		text-align: center;
-		margin-bottom: 30px;
-		height: 5vh;
-		position: relative;
-		display: flex;
-		align-items: center;
-	}
+    .modal {
+        background: white;
+        padding: 24px 28px;
+        border-radius: 12px;
+        width: 320px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        font-family: inherit;
+        color: #333;
+        user-select: none;
+    }
 
-	.app-header button {
-		position: absolute;
-		top: 50%;
-		transform: translateY(-50%);
-		font-size: 1.5rem;
-	}
+    .modal h3 {
+        margin-top: 0;
+        margin-bottom: 16px;
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #222;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 8px;
+    }
 
-	.app-header h1 {
-		color: #333;
-		margin: 0 0 10px 0;
-		font-size: 2.2rem;
-		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
-		margin: 0 auto;
-	}
+    .modal select {
+        width: 100%;
+        padding: 8px 12px;
+        font-size: 1rem;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        outline: none;
+        transition: border-color 0.2s ease;
+        cursor: pointer;
+    }
 
-	.app-content {
-		display: grid;
-		grid-template-columns: 0.3fr 1fr 0.3fr;
-		gap: 15px;
-		min-height: 100%;
-		max-width: 100%;
-		min-width: 90vw;
-		height: 80vh;
-		overflow: auto;
-	}
+    .modal select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 6px rgba(0, 123, 255, 0.3);
+    }
 
-	.panel {
-		background: white;
-		border-radius: 12px;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-		overflow: hidden;
-		border: 1px solid #e5e7eb;
-	}
+    .modal-buttons {
+        margin-top: 24px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+    }
 
-	.panel-content {
-		padding: 16px;
-		display: flex;
-		flex-direction: column;
-		overflow: auto;
-		height: 100%;
-	}
+    .modal-buttons .btn {
+        padding: 10px 18px;
+        font-size: 1rem;
+        border-radius: 8px;
+        border: 2px solid #ddd;
+        background: white;
+        color: #333;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        font-family: inherit;
+    }
 
-	.panel-content h3 {
-		text-align: center;
-		margin: 0 0 15px 0;
-		font-size: 1.5rem;
-		color: #222;
-		border-bottom: 2px solid #eee;
-		padding-bottom: 10px;
-	}
+    .modal-buttons .btn:hover {
+        border-color: #007bff;
+        background: #f8f9fa;
+        transform: translateY(-1px);
+    }
 
-	.canvas-container {
-		margin-bottom: 10px;
-		display: flex;
-		flex-direction: row;
-	}
+    .modal-buttons .btn.btn-primary {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        border-color: #007bff;
+        box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+    }
 
-	.tools-panel h3,
-	.data-panel h3 {
-		margin: 0 0 20px 0;
-		color: #333;
-		font-size: 1.3rem;
-	}
+    .modal-buttons .btn.btn-primary:hover {
+        background: linear-gradient(135deg, #0056b3, #004085);
+        border-color: #0056b3;
+        box-shadow: 0 2px 12px rgba(0, 72, 133, 0.5);
+    }
 
-	.form-group {
-		margin-bottom: 20px;
-	}
+    .number-input {
+        width: 100%;
+        padding: 8px 12px;
+        font-size: 1rem;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        outline: none;
+        font-family: inherit;
+        color: #333;
+        box-sizing: border-box;
+        transition: border-color 0.2s ease;
+        cursor: pointer;
+    }
 
-	.form-label {
-		display: block;
-		margin-bottom: 8px;
-		color: #555;
-	}
+    .number-input:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 6px rgba(0, 123, 255, 0.3);
+    }
 
-	.tool-buttons {
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-	}
+    .app-container {
+        margin: 0 auto;
+        padding: 20px;
+        max-height: 100%;
+        overflow: hidden;
+    }
 
-	.btn {
-		padding: 12px 16px;
-		border: 2px solid #ddd;
-		border-radius: 8px;
-		cursor: pointer;
-		font-size: 14px;
-		font-weight: 500;
-		transition: all 0.2s ease;
-		background: white;
-		color: #333;
-		font-family: inherit;
-	}
+    .app-header {
+        text-align: center;
+        margin-bottom: 30px;
+        height: 5vh;
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
 
-	.btn:hover {
-		border-color: #007bff;
-		background: #f8f9fa;
-		transform: translateY(-1px);
-	}
+    .app-header button {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 1.5rem;
+    }
 
-	.btn.active {
-		background: linear-gradient(135deg, #007bff, #0056b3);
-		color: white;
-		border-color: #007bff;
-		box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
-	}
+    .app-header h1 {
+        color: #333;
+        margin: 0 0 10px 0;
+        font-size: 2.2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin: 0 auto;
+    }
 
-	.btn.bucket-tool.active {
-		background: linear-gradient(135deg, #28a745, #20c997);
-		border-color: #28a745;
-		box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
-	}
+    .app-content {
+        display: grid;
+        grid-template-columns: 0.3fr 1fr 0.3fr;
+        gap: 15px;
+        min-height: 100%;
+        max-width: 100%;
+        min-width: 90vw;
+        height: 80vh;
+        overflow: auto;
+    }
 
-	.btn-primary {
-		background: linear-gradient(135deg, #007bff, #0056b3);
-		color: white;
-		border-color: #007bff;
-	}
+    .panel {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+    }
 
-	.btn-primary:hover {
-		background: linear-gradient(135deg, #0056b3, #004085);
-		border-color: #0056b3;
-	}
+    .panel-content {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        overflow: auto;
+        height: 100%;
+    }
 
-	.btn-nobg {
-		border: none;
-		background: none;
-		align-self: start;
-	}
-	.btn-nobg:hover {
-		border: none;
-		align-self: start;
-		box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
-		cursor: pointer;
-	}
+    .panel-content h3 {
+        text-align: center;
+        margin: 0 0 15px 0;
+        font-size: 1.5rem;
+        color: #222;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+    }
 
-	.color-palette {
-		display: grid;
-		grid-template-columns: repeat(6, 1fr);
-		gap: 8px;
-	}
+    .canvas-container {
+        margin-bottom: 10px;
+        display: flex;
+        flex-direction: row;
+    }
 
-	.color-swatch {
-		width: 100%;
-		height: 30px;
-		border: 3px solid #ddd;
-		border-radius: 8px;
-		cursor: pointer;
-		transition: all 0.2s ease;
-		padding: 0;
-		background: none;
-	}
+    .tools-panel h3,
+    .data-panel h3 {
+        margin: 0 0 20px 0;
+        color: #333;
+        font-size: 1.3rem;
+    }
 
-	.color-swatch:hover {
-		border-color: #999;
-		transform: scale(1.05);
-		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-	}
+    .form-group {
+        margin-bottom: 20px;
+    }
 
-	.color-swatch.active {
-		border-color: #007bff;
-		border-width: 3px;
-		box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-		transform: scale(1.1);
-	}
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        color: #555;
+    }
 
-	.stroke-slider {
-		width: 100%;
-		height: 8px;
-		border-radius: 4px;
-		background: #ddd;
-		outline: none;
-		cursor: pointer;
-		appearance: none;
-	}
+    .tool-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
 
-	.stroke-slider::-webkit-slider-thumb {
-		appearance: none;
-		width: 20px;
-		height: 20px;
-		border-radius: 50%;
-		background: linear-gradient(135deg, #007bff, #0056b3);
-		cursor: pointer;
-		box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
-	}
+    .btn {
+        padding: 12px 16px;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        background: white;
+        color: #333;
+        font-family: inherit;
+    }
 
-	.action-buttons {
-		border-top: 1px solid #eee;
-		padding-top: 20px;
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-	}
+    .btn:hover {
+        border-color: #007bff;
+        background: #f8f9fa;
+        transform: translateY(-1px);
+    }
 
-	.canvas-panel {
-		overflow: auto;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		padding: 20px;
-		background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-	}
-	.data-panel h4 {
-		margin: 0 0 12px 0;
-		color: #333;
-		font-size: 1.1rem;
-	}
+    .btn.active {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        border-color: #007bff;
+        box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+    }
+
+    .btn.bucket-tool.active {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        border-color: #28a745;
+        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        border-color: #007bff;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #0056b3, #004085);
+        border-color: #0056b3;
+    }
+
+    .btn-nobg {
+        border: none;
+        background: none;
+        align-self: start;
+    }
+
+    .btn-nobg:hover {
+        border: none;
+        align-self: start;
+        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+        cursor: pointer;
+    }
+
+    .color-palette {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 8px;
+    }
+
+    .color-swatch {
+        width: 100%;
+        height: 30px;
+        border: 3px solid #ddd;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        padding: 0;
+        background: none;
+    }
+
+    .color-swatch:hover {
+        border-color: #999;
+        transform: scale(1.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .color-swatch.active {
+        border-color: #007bff;
+        border-width: 3px;
+        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        transform: scale(1.1);
+    }
+
+    .stroke-slider {
+        width: 100%;
+        height: 8px;
+        border-radius: 4px;
+        background: #ddd;
+        outline: none;
+        cursor: pointer;
+        appearance: none;
+    }
+
+    .stroke-slider::-webkit-slider-thumb {
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 123, 255, 0.4);
+    }
+
+    .action-buttons {
+        border-top: 1px solid #eee;
+        padding-top: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .canvas-panel {
+        overflow: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+
+    .data-panel h4 {
+        margin: 0 0 12px 0;
+        color: #333;
+        font-size: 1.1rem;
+    }
 
 	.user-list {
 		display: flex;
@@ -599,13 +805,14 @@
 		}
 	}
 
-	@media (max-width: 768px) {
-		.app-content {
-			grid-template-columns: 1fr;
-			gap: 20px;
-		}
-		.app-header h1 {
-			font-size: 1.8rem;
-		}
-	}
+    @media (max-width: 768px) {
+        .app-content {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .app-header h1 {
+            font-size: 1.8rem;
+        }
+    }
 </style>

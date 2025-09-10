@@ -7,7 +7,7 @@
 		currentStrokeWidth,
 		isDrawing,
 		canvasCursor,
-		vectorDataStore,
+		vectorDataStore, selectedShapeIds
 	} from '$lib/components/CanvasStore';
 	import type {
 		Point,
@@ -15,16 +15,13 @@
 		VectorPath,
 		VectorRectangle,
 		VectorCircle,
-		CanvasState,
+		CanvasState
 	} from '$lib/components/CanvasTypes';
 	import {
 		generateId,
 		getCanvasCoordinates,
 		findShapeAtPoint,
-		vectorToSVG,
-		parseSVGPath,
-		saveToLocalStorage,
-		downloadAsJSON
+		pointInRectangle, pointInCircle, pointInPath
 	} from '$lib/components/CanvasUtils';
 
 	// Canvas references
@@ -34,7 +31,6 @@
 	// Constants
 	const CANVAS_WIDTH = 800;
 	const CANVAS_HEIGHT = 600;
-	const STORAGE_KEY = 'svelteTypescriptVectorDrawing';
 
 	// Canvas state
 	let canvasState: CanvasState = {
@@ -43,7 +39,7 @@
 		tempShapeStart: null
 	};
 
-    // Props
+	// Props
 	const {
 		shapes,
 		backgroundFill,
@@ -64,16 +60,53 @@
 		sendCursorPosition: (point: Point) => void;
 	} = $props();
 
+	const vectorData = vectorDataStore(shapes, backgroundFill, timestamp);
+
+	let selectionMarqueeStart: Point | null = null;
+	let selectionMarqueeEnd: Point | null = null;
+	let dragStartPos: Point | null = null;
+	let initialShapePositions: Map<string, Point> = new Map();
+	let isDraggingSelection = false;
 	import { onMount } from 'svelte';
 	import { users } from '$lib/api/websocket.svelte';
 
 	onMount(async () => {
 		ctx = canvas.getContext('2d')!;
 	});
+
+	function isPointInVectorElement(point: Point, element: VectorElement): boolean {
+		switch (element.type) {
+			case 'rectangle':
+				return pointInRectangle(point, element.x, element.y, element.width, element.height);
+			case 'circle':
+				return pointInCircle(point, element.cx, element.cy, element.radius);
+			case 'path':
+				return pointInPath(point, element.points, canvas.width, canvas.height);
+			default:
+				return false;
+		}
+	}
+
+	import { createEventDispatcher } from 'svelte';
+	const dispatch = createEventDispatcher();
+
 	// Canvas event handlers
 	function handleCanvasMouseDown(event: MouseEvent): void {
 		if (get(currentTool) === 'bucket') {
 			handleBucketFill(event);
+		} else if (get(currentTool) === 'selection') {
+			const coords = getCanvasCoordinates(event, canvas);
+			selectionMarqueeStart = coords;
+			selectionMarqueeEnd = coords;
+			isDraggingSelection = false; // Not dragging shapes yet, just marquee
+			selectedShapeIds.set(new Set()); // Clear selection at start
+		} else if (get(currentTool) === 'cursor') {
+			const coords = getCanvasCoordinates(event, canvas);
+			get(vectorData).elements.forEach(element => {
+				if (isPointInVectorElement(coords, element)) {
+					dispatch('clickedElement', element);
+				}
+			});
 		} else {
 			startDrawing(event);
 		}
@@ -143,17 +176,172 @@
 		if (!canvasState.isDrawing || get(currentTool) === 'bucket') return;
 
 		const coords = getCanvasCoordinates(event, canvas);
-
-		if (get(currentTool) === 'pen') {
-			canvasState.currentPath.push(coords);
+		if (get(currentTool) === 'selection') {
+			if (!selectionMarqueeStart) return;
+			// User is dragging marquee rectangle
+			selectionMarqueeEnd = coords;
 			redrawCanvas();
-		} else if (canvasState.tempShapeStart) {
-			redrawCanvas();
-			drawShapePreview(canvasState.tempShapeStart, coords);
+			drawSelectionMarquee(selectionMarqueeStart, selectionMarqueeEnd);
+		} else {
+			if (!canvasState.isDrawing || get(currentTool) === 'bucket') return;
+			if (get(currentTool) === 'pen') {
+				canvasState.currentPath.push(coords);
+				redrawCanvas();
+			} else if (canvasState.tempShapeStart) {
+				redrawCanvas();
+				drawShapePreview(canvasState.tempShapeStart, coords);
+			}
 		}
 	}
 
 	function handleCanvasMouseUp(event: MouseEvent): void {
+		if (get(currentTool) === 'selection') {
+			if (!isDraggingSelection) {
+				// End marquee drag → select all shapes inside marquee rect
+				const rect = getMarqueeRectangle(selectionMarqueeStart!, selectionMarqueeEnd!);
+				selectShapesInRect(rect);
+				selectionMarqueeStart = null;
+				selectionMarqueeEnd = null;
+
+				// Prepare for dragging if shapes selected:
+				const coords = getCanvasCoordinates(event, canvas);
+				if (get(selectedShapeIds).size > 0) {
+					isDraggingSelection = true;
+					dragStartPos = coords;
+					captureInitialShapePositions();
+				}
+			} else {
+				// End dragging shapes
+				isDraggingSelection = false;
+				dragStartPos = null;
+				initialShapePositions.clear();
+			}
+		} else {
+			if (!canvasState.isDrawing || get(currentTool) === 'bucket') return;
+			canvasState.isDrawing = false;
+			isDrawing.set(false);
+			const coords = getCanvasCoordinates(event, canvas);
+			if (get(currentTool) === 'pen' && canvasState.currentPath.length > 1) {
+				const pathShape: VectorPath = {
+					id: generateId(),
+					type: 'path',
+					points: [...canvasState.currentPath],
+					stroke: get(currentStrokeColor),
+					strokeWidth: get(currentStrokeWidth),
+					fill: 'none',
+					action: { type: 'none', link: ''}
+				};
+				shapes.update((current) => [...current, pathShape]);
+				sendStrokes(pathShape)
+				canvasState.currentPath = [];
+			} else if (canvasState.tempShapeStart) {
+				const shape = createShapeVector(canvasState.tempShapeStart, coords);
+				if (shape) {
+					shapes.update((current) => [...current, shape]);
+					sendStrokes(shape)
+				}
+				canvasState.tempShapeStart = null;
+			}
+		}
+	}
+
+	function getMarqueeRectangle(start: Point, end: Point) {
+		return {
+			x: Math.min(start.x, end.x),
+			y: Math.min(start.y, end.y),
+			width: Math.abs(end.x - start.x),
+			height: Math.abs(end.y - start.y)
+		};
+	}
+
+	// Draw the dashed selection marquee rectangle
+	function drawSelectionMarquee(start: Point, end: Point): void {
+		if (!ctx) return;
+		ctx.save();
+		ctx.strokeStyle = '#3399FF';
+		ctx.lineWidth = 1;
+		ctx.setLineDash([6, 4]);
+		const rect = getMarqueeRectangle(start, end);
+		ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
+		ctx.restore();
+	}
+
+	// Select shapes that are fully or partially inside the marquee rectangle
+	function selectShapesInRect(rect: { x: number, y: number, width: number, height: number }): void {
+		const shapesArray = get(shapes);
+		const selectedIds = new Set<string>();
+
+		shapesArray.forEach(shape => {
+			const shapeBox = getBoundingBox(shape);
+			if (rectsIntersect(rect, shapeBox)) {
+				selectedIds.add(shape.id);
+			}
+		});
+
+		selectedShapeIds.set(selectedIds);
+	}
+
+	// Get bounding box of any shape
+	function getBoundingBox(shape: VectorElement): { x: number, y: number, width: number, height: number } {
+		switch (shape.type) {
+			case 'rectangle':
+				return { x: shape.x, y: shape.y, width: shape.width, height: shape.height };
+			case 'circle':
+				return {
+					x: shape.cx - shape.radius,
+					y: shape.cy - shape.radius,
+					width: shape.radius * 2,
+					height: shape.radius * 2
+				};
+			case 'path': {
+				const xs = shape.points.map(p => p.x);
+				const ys = shape.points.map(p => p.y);
+				return {
+					x: Math.min(...xs),
+					y: Math.min(...ys),
+					width: Math.max(...xs) - Math.min(...xs),
+					height: Math.max(...ys) - Math.min(...ys)
+				};
+			}
+		}
+	}
+
+	// Check if two rectangles intersect (overlap)
+	function rectsIntersect(r1: { x: number, y: number, width: number, height: number }, r2: {
+		x: number,
+		y: number,
+		width: number,
+		height: number
+	}): boolean {
+		return !(r2.x > r1.x + r1.width ||
+			r2.x + r2.width < r1.x ||
+			r2.y > r1.y + r1.height ||
+			r2.y + r2.height < r1.y);
+	}
+
+	// Record initial shape positions before drag start for relative movement
+	function captureInitialShapePositions(): void {
+		initialShapePositions.clear();
+		const shapesArray = get(shapes);
+		const selectedIds = get(selectedShapeIds);
+		shapesArray.forEach(shape => {
+			if (selectedIds.has(shape.id)) {
+				switch (shape.type) {
+					case 'rectangle':
+						initialShapePositions.set(shape.id, { x: shape.x, y: shape.y });
+						break;
+					case 'circle':
+						initialShapePositions.set(shape.id, { x: shape.cx, y: shape.cy });
+						break;
+					case 'path':
+						// For paths, record first point as reference
+						if (shape.points.length > 0) {
+							initialShapePositions.set(shape.id, { x: shape.points[0].x, y: shape.points[0].y });
+						}
+						break;
+				}
+			}
+		});
 		if (!canvasState.isDrawing || get(currentTool) === 'bucket') return;
 
 		canvasState.isDrawing = false;
@@ -168,7 +356,8 @@
 				points: [...canvasState.currentPath],
 				stroke: get(currentStrokeColor),
 				strokeWidth: get(currentStrokeWidth),
-				fill: 'none'
+				fill: 'none',
+				action: { type: 'none', link: ''}
 			};
 			shapes.update((current) => [...current, pathShape]);
 			sendStrokes(pathShape);
@@ -232,7 +421,8 @@
 					x: Math.min(start.x, end.x),
 					y: Math.min(start.y, end.y),
 					width: Math.abs(end.x - start.x),
-					height: Math.abs(end.y - start.y)
+					height: Math.abs(end.y - start.y),
+					action: { type: 'none', link: ''}
 				};
 				return rect;
 			}
@@ -243,7 +433,8 @@
 					type: 'circle',
 					cx: start.x,
 					cy: start.y,
-					radius
+					radius,
+					action: { type: 'none', link: ''}
 				};
 				return circle;
 			}
@@ -359,6 +550,40 @@
 				ctx.stroke();
 				break;
 		}
+
+		const selectedId = get(selectedShapeIds);
+		const isSelected = selectedId.has(item.id);
+
+		if (isSelected) {
+			ctx.save();
+			// Draw highlight: for example, dashed blue bounding box around shape
+			ctx.strokeStyle = '#007bff';
+			ctx.lineWidth = 2;
+			ctx.setLineDash([6, 4]);
+
+			switch (item.type) {
+				case 'rectangle':
+					ctx.strokeRect(item.x - 4, item.y - 4, item.width + 8, item.height + 8);
+					break;
+				case 'circle':
+					ctx.beginPath();
+					ctx.arc(item.cx, item.cy, item.radius + 4, 0, 2 * Math.PI);
+					ctx.stroke();
+					break;
+				case 'path': {
+					// Calculate bounding box of path points
+					const xs = item.points.map(p => p.x);
+					const ys = item.points.map(p => p.y);
+					const minX = Math.min(...xs);
+					const minY = Math.min(...ys);
+					const maxX = Math.max(...xs);
+					const maxY = Math.max(...ys);
+					ctx.strokeRect(minX - 4, minY - 4, maxX - minX + 8, maxY - minY + 8);
+					break;
+				}
+			}
+			ctx.restore();
+		}
 	}
 
 	function drawCurrentPath(): void {
@@ -392,35 +617,35 @@
 </script>
 
 <canvas
-    bind:this={canvas}
-    width={CANVAS_WIDTH}
-    height={CANVAS_HEIGHT}
-    style="cursor: {$canvasCursor};"
-    onmousedown={handleCanvasMouseDown}
-    onmousemove={handleCanvasMouseMove}
-    onmouseup={handleCanvasMouseUp}
-    onmouseleave={handleCanvasMouseLeave}
+	bind:this={canvas}
+	width={CANVAS_WIDTH}
+	height={CANVAS_HEIGHT}
+	style="cursor: {$canvasCursor};"
+	onmousedown={handleCanvasMouseDown}
+	onmousemove={handleCanvasMouseMove}
+	onmouseup={handleCanvasMouseUp}
+	onmouseleave={handleCanvasMouseLeave}
 ></canvas>
 
 <style>
-	canvas {
-		border: 3px solid #ddd;
-		border-radius: 12px;
-		box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-		background: white;
-		transition: all 0.2s ease;
-	}
+    canvas {
+        border: 3px solid #ddd;
+        border-radius: 12px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        background: white;
+        transition: all 0.2s ease;
+    }
 
-	canvas:hover {
-		box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
-	}
+    canvas:hover {
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+    }
 
-    	@media (max-width: 768px) {
+    @media (max-width: 768px) {
 
-		canvas {
-			width: 100%;
-			max-width: 400px;
-			height: auto;
-		}
-	}
+        canvas {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+        }
+    }
 </style>
