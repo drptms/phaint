@@ -1,7 +1,6 @@
 // Svelte stores for the vector drawing application
 import { writable, derived, type Writable } from 'svelte/store';
-import type { VectorElement, DrawingTool, VectorData, DrawingStats, CanvasType } from './CanvasTypes';
-import type { WorkBoardState } from '$lib/api/websocket.svelte';
+import type { VectorElement, DrawingTool, VectorData, DrawingStats } from './CanvasTypes';
 
 // Drawing state stores
 export const currentTool = writable<DrawingTool>('pen' as DrawingTool);
@@ -34,7 +33,8 @@ export const canvasCursor = derived(
 
 export function vectorDataStore(
 	shapes: Writable<VectorElement[]>,
-	backgroundFill: Writable<string>
+	backgroundFill: Writable<string>,
+	timestamp: string
 ) {
 	return derived(
 		[shapes, backgroundFill],
@@ -43,7 +43,7 @@ export function vectorDataStore(
 			height: 600,
 			backgroundFill: $backgroundFill,
 			elements: $shapes,
-			timestamp: new Date().toISOString(),
+			timestamp: timestamp,
 			version: '2.0'
 		})
 	);
@@ -51,9 +51,10 @@ export function vectorDataStore(
 
 export function drawingStats(
 	shapes: Writable<VectorElement[]>,
-	backgroundFill: Writable<string>
+	backgroundFill: Writable<string>,
+	timestamp: string
 ) {
-	const vectorData = vectorDataStore(shapes, backgroundFill);
+	const vectorData = vectorDataStore(shapes, backgroundFill, timestamp);
 	return derived(
 		vectorData,
 		($vectorData): DrawingStats => {

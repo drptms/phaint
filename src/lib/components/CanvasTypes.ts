@@ -10,6 +10,7 @@ export interface CanvasType {
 	id: string;
 	shapes: Writable<VectorElement[]>;
 	backgroundFill: Writable<string>;
+	timestamp: string;
 }
 
 export interface VectorShape {
