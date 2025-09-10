@@ -18,7 +18,6 @@
 	<div class="login-modal">
 		<h1>Logout</h1>
 		<p class="subtitle">See you!</p>
-
 		<form id="loginForm" method="POST" action="/logout?/logout">
 			<button type="submit" class="login-btn">Logout</button>
 		</form>

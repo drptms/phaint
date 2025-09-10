@@ -61,6 +61,32 @@
 		ctx = canvas.getContext('2d')!;
 	});
 
+	function isPointInVectorElement(point: Point, element: VectorElement): boolean {
+		switch (element.type) {
+			case 'rectangle':
+				// Check if point is inside the rectangle bounds
+				return (
+					point.x >= element.x &&
+					point.x <= element.x + element.width &&
+					point.y >= element.y &&
+					point.y <= element.y + element.height
+				);
+			case 'circle':
+				// Check if point is within the circle using distance
+				const dx = point.x - element.cx;
+				const dy = point.y - element.cy;
+				return dx * dx + dy * dy <= element.radius * element.radius;
+			case 'path':
+				return false;
+			default:
+				return false;
+		}
+	}
+
+
+	import { createEventDispatcher } from 'svelte';
+	const dispatch = createEventDispatcher();
+
 	// Canvas event handlers
 	function handleCanvasMouseDown(event: MouseEvent): void {
 		if (get(currentTool) === 'bucket') {
@@ -71,7 +97,17 @@
 			selectionMarqueeEnd = coords;
 			isDraggingSelection = false; // Not dragging shapes yet, just marquee
 			selectedShapeIds.set(new Set()); // Clear selection at start
-		} else {
+		} else if (get(currentTool) === 'cursor') {
+			const coords = getCanvasCoordinates(event, canvas);
+			let elementId: string = "";
+			get(vectorData).elements.forEach(element => {
+				if (isPointInVectorElement(coords, element)) {
+					dispatch('clickedElement', element)
+				}
+			})
+			console.log(elementId);
+		}
+		else {
 			startDrawing(event);
 		}
 	}

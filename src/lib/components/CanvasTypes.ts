@@ -62,6 +62,7 @@ export enum DrawingTool {
 	CIRCLE = 'circle',
 	BUCKET = 'bucket',
 	SELECTION = 'selection',
+	CURSOR = 'cursor'
 }
 
 export interface Tool {

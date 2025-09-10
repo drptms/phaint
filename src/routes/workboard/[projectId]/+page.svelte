@@ -13,7 +13,8 @@
 	import type {
 		DrawingTool,
 		Tool,
-		CanvasType
+		CanvasType,
+		VectorElement
 	} from '$lib/components/CanvasTypes';
 	import { generateId } from '$lib/components/CanvasUtils';
 	import { showLayout } from '$lib/stores/ui';
@@ -24,10 +25,12 @@
 		{ id: 'rectangle' as DrawingTool, name: 'Rectangle', icon: '⬜' },
 		{ id: 'circle' as DrawingTool, name: 'Circle', icon: '⭕' },
 		{ id: 'bucket' as DrawingTool, name: 'Bucket Fill', icon: '🪣' },
-		{ id: 'selection' as DrawingTool, name: 'Selection', icon: '🔲' }
+		{ id: 'selection' as DrawingTool, name: 'Selection', icon: '🔲' },
+		{ id: 'cursor' as DrawingTool, name: "Cursor", icon: '👆🏼'}
 	];
 
 	let canvases: CanvasType[] = $state([]);
+	let canvasRefs: HTMLDivElement[] = $state([]);
 
 	// Colors configuration
 	const colors: string[] = [
@@ -51,7 +54,7 @@
 	import { onMount, onDestroy } from 'svelte';
 	import { operations, ProjectWebSocket, type WorkBoardState } from '$lib/api/websocket.svelte';
 	import type { PageData } from './$types';
-	import { get } from 'svelte/store';
+	import { get, writable } from 'svelte/store';
 
 	let { data }: { data: PageData } = $props();
 	let projectId = data.projectId;
@@ -102,19 +105,43 @@
 		canvases = [...canvases, newCanvas];
 	}
 
+	const showBehaviorModal = writable(false);
+
+	const availableActions = [
+		{ label: 'goto', value: 'goto' },
+		{ label: 'No action', value: 'none' }
+	];
+
+	let selectedAction = $state('none');
+	let gotoPageNumber = $state(1);
+
 	function addBehavior(): void {
-		canvases.map(canvas => {
-			get(canvas.shapes).map(shape => {
+		showBehaviorModal.set(true);
+	}
+
+	function confirmBehavior(): void {
+		if (selectedAction === 'none') {
+			showBehaviorModal.set(false);
+			return;
+		}
+
+		canvases.forEach(canvas => {
+			const shapesArray = get(canvas.shapes);
+			shapesArray.forEach(shape => {
 				if (get(selectedShapeIds).has(shape.id)) {
-					shape.action = {
-						type : "goto",
-						link : "1"
+					if (selectedAction.startsWith('goto')) {
+						shape.action = {
+							type: 'goto',
+							link: gotoPageNumber.toString(),
+						};
 					}
 				}
-			})
-		})
+			});
 
-		canvases.forEach(canvas => console.log(get(canvas.shapes)))
+			canvas.shapes.set(shapesArray); // Update the store after modification
+		});
+
+		showBehaviorModal.set(false);
 	}
 
 	function removeCanvas(canvasId: string): void {
@@ -149,6 +176,17 @@
 			shapes: createShapesStore(op.vectorData.elements),
 			backgroundFill: createBackgroundFillStore(op.vectorData.backgroundFill)
 		}));
+	}
+
+	function focusCanvas(index: number) {
+		const el = canvasRefs[index];
+		if (el) {
+			el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+		}
+	}
+
+	function removeCanvasRef(index: number) {
+		canvasRefs.splice(index, 1);
 	}
 </script>
 
@@ -236,10 +274,18 @@
 
 		<!-- Center Panel: Canvas -->
 		<div class="panel canvas-panel">
-			{#each canvases as c}
-				<div class="canvas-container">
-					<button class="btn-canvas" onclick={() => removeCanvas(c.id)}>❌</button>
-					<Canvas shapes={c.shapes} backgroundFill={c.backgroundFill} />
+			{#each canvases as c, i}
+				<div class="canvas-container" bind:this={canvasRefs[i]}>
+					<button class="btn-canvas" onclick={() => {removeCanvas(c.id); removeCanvasRef(i)}}>❌</button>
+					<Canvas shapes={c.shapes}
+									backgroundFill={c.backgroundFill}
+									on:clickedElement={(event) => {
+										const element: VectorElement = event.detail;
+										switch (element.action.type) {
+											case "goto":
+												focusCanvas(parseInt(element.action.link) - 1)
+											}
+									}}/>
 				</div>
 			{/each}
 		</div>
@@ -265,7 +311,149 @@
 	</div>
 </div>
 
+{#if $showBehaviorModal}
+	<div class="modal-backdrop">
+		<div class="modal">
+			<h3>Select an action</h3>
+
+			<select bind:value={selectedAction}>
+				{#each availableActions as action}
+					<option value={action.value}>{action.label}</option>
+				{/each}
+			</select>
+
+			{#if selectedAction === 'goto'}
+				<div class="form-group" style="margin-top: 12px;">
+					<label for="gotoPage" class="form-label">Go to page number:</label>
+					<input
+						id="gotoPage"
+						type="number"
+						min="1"
+						bind:value={gotoPageNumber}
+						class="number-input"
+						style="width: 100%; padding: 6px 10px; border-radius: 8px; border: 2px solid #ddd; font-size: 1rem;"
+					/>
+				</div>
+			{/if}
+
+			<div class="modal-buttons">
+				<button class="btn btn-primary" onclick={confirmBehavior}>Apply</button>
+				<button class="btn" onclick={() => showBehaviorModal.set(false)}>Cancel</button>
+			</div>
+		</div>
+	</div>
+{/if}
+
+
 <style>
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+
+    .modal {
+        background: white;
+        padding: 24px 28px;
+        border-radius: 12px;
+        width: 320px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        font-family: inherit;
+        color: #333;
+        user-select: none;
+    }
+
+    .modal h3 {
+        margin-top: 0;
+        margin-bottom: 16px;
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: #222;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 8px;
+    }
+
+    .modal select {
+        width: 100%;
+        padding: 8px 12px;
+        font-size: 1rem;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        outline: none;
+        transition: border-color 0.2s ease;
+        cursor: pointer;
+    }
+
+    .modal select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 6px rgba(0, 123, 255, 0.3);
+    }
+
+    .modal-buttons {
+        margin-top: 24px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+
+    .modal-buttons .btn {
+        padding: 10px 18px;
+        font-size: 1rem;
+        border-radius: 8px;
+        border: 2px solid #ddd;
+        background: white;
+        color: #333;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        font-family: inherit;
+    }
+
+    .modal-buttons .btn:hover {
+        border-color: #007bff;
+        background: #f8f9fa;
+        transform: translateY(-1px);
+    }
+
+    .modal-buttons .btn.btn-primary {
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        border-color: #007bff;
+        box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+    }
+
+    .modal-buttons .btn.btn-primary:hover {
+        background: linear-gradient(135deg, #0056b3, #004085);
+        border-color: #0056b3;
+        box-shadow: 0 2px 12px rgba(0, 72, 133, 0.5);
+    }
+
+    .number-input {
+        width: 100%;
+        padding: 8px 12px;
+        font-size: 1rem;
+        border: 2px solid #ddd;
+        border-radius: 8px;
+        outline: none;
+        font-family: inherit;
+        color: #333;
+        box-sizing: border-box;
+        transition: border-color 0.2s ease;
+        cursor: pointer;
+    }
+
+    .number-input:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 6px rgba(0, 123, 255, 0.3);
+    }
+
     .app-container {
         margin: 0 auto;
         padding: 20px;
