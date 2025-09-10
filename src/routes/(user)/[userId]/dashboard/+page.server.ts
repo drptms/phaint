@@ -22,7 +22,6 @@ export const actions = {
 		await addProject(uid, pid, pname);
 	},
 	acceptInvitation: async ({ cookies, request }) => {
-		console.log("Accepting invitation...");
 		let data = await request.formData();
 		let uid = cookies.get('userId') as string;
 		let invite = data.get('invite') as string;
