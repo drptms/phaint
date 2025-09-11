@@ -266,7 +266,7 @@
 	}
 
 	function downloadPDF() {
-		downloadAsPDF(canvases.map((c) => get(vectorDataStore(c.shapes, c.backgroundFill, c.timestamp))), "").catch((e) => console.log(e))
+		downloadAsPDF(canvases.map((c) => get(vectorDataStore(c.shapes, c.backgroundFill, c.timestamp)))).catch((e) => console.log(e))
 	}
 </script>
 
