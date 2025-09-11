@@ -50,9 +50,20 @@
 />
 
 <div class="project-container">
-	{#each data.userProjects as item}
-		<ProjectCard {item} />
-	{/each}
+    <h2>Your Projects</h2>
+    <div class="own-projects">
+        
+        {#each data.own as item}
+            <ProjectCard {item} />
+        {/each}
+    </div>
+    <h2>Shared Projects</h2>
+    <div class="shared-projects">
+        
+        {#each data.shared as item}
+            <ProjectCard {item} />
+        {/each}
+    </div>
 </div>
 
 <style>
@@ -106,12 +117,24 @@
     }
 
     .project-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        padding: 0 0.5rem 2rem 0.5rem;
+        max-width: 1100px; /* Optional for better max width */
+        margin: 0 auto;
+    }
+
+    .own-projects, .shared-projects {
         display: grid;
         grid-template-columns: repeat(4, 260px);
         gap: 2rem;
-        padding: 0 0.5rem 2rem 0.5rem;
-        margin-top: 0;
-        justify-content: center; /* centers grid if container is wider */
+        justify-content: center;
+    }
+
+    .shared-projects {
+        border-top: 2px solid #e0e0e0; /* Horizontal dividing line */
+        padding-top: 2rem;
     }
 
 

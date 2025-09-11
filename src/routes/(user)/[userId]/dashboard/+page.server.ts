@@ -5,10 +5,14 @@ export const load: PageServerLoad = async ({ cookies, params }: Parameters<PageS
 	let userProjects = await getAllUserProjects(params.userId);
 	let username = cookies.get("username");
 	let uid = cookies.get("userId");
+	if (!userProjects) {
+		userProjects = { own: [], shared: [] };
+	}
 	return {
 		uid,
 		username,
-		userProjects
+		own: userProjects.own,
+		shared: userProjects.shared
 	};
 };
 
