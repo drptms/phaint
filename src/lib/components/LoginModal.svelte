@@ -1,5 +1,6 @@
 <script>
 	let { showModal = $bindable(), switchModal } = $props();
+	import { darkMode } from '$lib/stores/theme';
 
 	let dialog = $state(); // HTMLDialogElement
 
@@ -11,39 +12,68 @@
 <!-- The Login Dialog -->
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<dialog id="loginDialog"
+<dialog id="loginDialog" class:dark={$darkMode}
 				bind:this={dialog}
 				onclose={() => (showModal = false)}
 				onclick={(e) => { if (e.target === dialog) dialog.close(); }}>
-	<div class="login-modal">
-		<h1>Login</h1>
-		<p class="subtitle">Welcome back! Please sign in to continue</p>
+	<div class="login-modal" class:dark={$darkMode}>
+		<h1 class:dark={$darkMode}>Login</h1>
+		<p class="subtitle" class:dark={$darkMode}>Welcome back! Please sign in to continue</p>
 
-		<form id="loginForm" method="POST" action="/login?/login">
-			<input type="text" id="username" name="mail" placeholder="Mail" required />
-			<input type="password" id="password" name="password" placeholder="Password" required />
+		<form id="loginForm" method="POST" action="/login?/login" class:dark={$darkMode}>
+			<input type="text" id="username" class:dark={$darkMode} name="mail" placeholder="Mail" required />
+			<input type="password" id="password" class:dark={$darkMode} name="password" placeholder="Password" required />
 
-			<div class="forgot-password">
+			<div class="forgot-password" class:dark={$darkMode}>
 				<!-- svelte-ignore a11y_invalid_attribute -->
-				<a href="#">Forgot Password</a>
+				<a href="#" class:dark={$darkMode}>Forgot Password</a>
 			</div>
 
-			<button type="submit" class="login-btn">Login</button>
+			<button type="submit" class="login-btn" class:dark={$darkMode}>Login</button>
 		</form>
 
-		<div class="divider">
-			<span>or</span>
+		<div class="divider" class:dark={$darkMode}>
+			<span class:dark={$darkMode}>or</span>
 		</div>
 
-		<div class="signup-link">
+		<div class="signup-link" class:dark={$darkMode}>
 			<!-- svelte-ignore a11y_invalid_attribute -->
-			Don't have an account? <a href="#" onclick={(e) => {e.preventDefault(); switchModal()}}>Sign Up</a>
+			Don't have an account? <a href="#" class:dark={$darkMode} onclick={(e) => {e.preventDefault(); switchModal()}}>Sign Up</a>
 		</div>
 	</div>
 </dialog>
 
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    :root {
+        --bg-light: linear-gradient(135deg, #e7e9fc, #cddbff);
+        --bg-dark: linear-gradient(135deg, #2b193b, #473275);
+
+        --text-light: #222;
+        --text-dark: #eee;
+
+        --placeholder-light: rgba(0, 0, 0, 0.45);
+        --placeholder-dark: rgba(255, 255, 255, 0.5);
+
+        --input-bg-light: rgba(255, 255, 255, 0.8);
+        --input-bg-dark: rgba(255, 255, 255, 0.1);
+
+        --input-border-light: rgba(0, 0, 0, 0.15);
+        --input-border-dark: rgba(255, 255, 255, 0.15);
+
+        --btn-bg-light: linear-gradient(135deg, #a3cef1, #ffcbcb);
+        --btn-bg-dark: linear-gradient(135deg, #335c67, #e09f3e);
+
+        --btn-hover-bg-light: linear-gradient(135deg, #c0dbfb, #ffc0c0);
+        --btn-hover-bg-dark: linear-gradient(135deg, #4b7a86, #f8c26e);
+
+        --link-color-light: rgba(20, 15, 40, 0.8);
+        --link-hover-light: #6a47ff;
+
+        --link-color-dark: rgba(138, 43, 226, 0.9);
+        --link-hover-dark: #a070ff;
+    }
+
+    /* Dialog Styles */
 
     dialog {
         border: none;
@@ -53,6 +83,7 @@
         padding: 0;
         background: transparent;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+        transition: box-shadow 0.3s ease;
     }
 
     dialog::backdrop {
@@ -61,126 +92,142 @@
     }
 
     .login-modal {
-        background: linear-gradient(135deg,
-        rgba(20, 15, 40, 0.98) 0%,
-        rgba(35, 25, 60, 0.95) 50%,
-        rgba(50, 35, 80, 0.92) 100%);
+        background: var(--bg-light);
+        color: var(--text-light);
         border-radius: 20px;
         padding: 40px 35px;
-        color: white;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         position: relative;
         overflow: hidden;
+        font-family: 'Inter', 'Roboto', Arial, sans-serif;
+        backdrop-filter: blur(8px);
+        transition: background 0.5s ease, color 0.5s ease;
     }
 
-    .login-modal::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg,
-        rgba(138, 43, 226, 0.1) 0%,
-        rgba(30, 144, 255, 0.05) 100%);
-        border-radius: 20px;
-        pointer-events: none;
-    }
-
-    .login-modal > * {
-        position: relative;
-        z-index: 1;
+    .login-modal.dark {
+        background: var(--bg-dark);
+        color: var(--text-dark);
+        box-shadow: 0 8px 32px 0 rgba(58, 20, 103, 0.5), 0 1.5px 6px 0 rgba(20, 20, 40, 0.3);
     }
 
     h1 {
         font-size: 32px;
         font-weight: 600;
-        margin: 0 0 8px 0;
-        color: white;
+        margin: 0 0 8px;
         letter-spacing: -0.5px;
+        transition: color 0.5s ease;
+    }
+    .login-modal.dark h1 {
+        color: var(--text-dark);
+        text-shadow: 0 0 10px rgba(180, 160, 245, 0.7);
     }
 
     .subtitle {
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 14px;
-        margin: 0 0 32px 0;
+        margin: 0 0 32px;
         font-weight: 400;
+        font-size: 14px;
+        color: rgba(34, 34, 34, 0.7);
+        transition: color 0.5s ease;
+    }
+    .login-modal.dark .subtitle {
+        color: rgba(238, 238, 238, 0.7);
     }
 
-    form {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
+    label {
+        font-weight: 500;
+        font-size: 1rem;
+        color: var(--text-light);
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+    .login-modal.dark label {
+        color: var(--text-dark);
     }
 
-    input[type="text"],
-    input[type="password"] {
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.15);
+    input[type='text'],
+    input[type='password'] {
+        background: var(--input-bg-light);
+        border: 1px solid var(--input-border-light);
         border-radius: 12px;
         padding: 16px 18px;
-        color: white;
         font-size: 16px;
+        color: var(--text-light);
         font-family: inherit;
         transition: all 0.3s ease;
+        outline: none;
         backdrop-filter: blur(10px);
     }
-
-    input[type="text"]:focus,
-    input[type="password"]:focus {
-        outline: none;
+    .login-modal.dark input[type='text'],
+    .login-modal.dark input[type='password'] {
+        background: var(--input-bg-dark);
+        border: 1px solid var(--input-border-dark);
+        color: var(--text-dark);
+    }
+    input[type='text']:focus,
+    input[type='password']:focus {
+        background: rgba(255, 255, 255, 0.12);
         border-color: rgba(138, 43, 226, 0.6);
         box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.15);
-        background: rgba(255, 255, 255, 0.12);
     }
 
     ::placeholder {
-        color: rgba(255, 255, 255, 0.5);
+        color: var(--placeholder-light);
+    }
+    .login-modal.dark ::placeholder {
+        color: var(--placeholder-dark);
     }
 
     .forgot-password {
         text-align: right;
+        font-size: 14px;
         margin-top: -8px;
         margin-bottom: 8px;
     }
-
     .forgot-password a {
-        color: rgba(255, 255, 255, 0.7);
+        color: var(--link-color-light);
         text-decoration: none;
-        font-size: 14px;
         transition: color 0.3s ease;
     }
-
+    .login-modal.dark .forgot-password a {
+        color: var(--link-color-dark);
+    }
     .forgot-password a:hover {
-        color: rgba(138, 43, 226, 0.9);
+        color: var(--link-hover-light);
+    }
+    .login-modal.dark .forgot-password a:hover {
+        color: var(--link-hover-dark);
     }
 
     .login-btn {
-        background: linear-gradient(135deg, #8a2be2 0%, #9932cc 100%);
+        background: var(--btn-bg-light);
         border: none;
         border-radius: 12px;
         padding: 16px 24px;
-        color: white;
         font-size: 16px;
         font-weight: 600;
         cursor: pointer;
+        color: white;
         transition: all 0.3s ease;
-        box-shadow: 0 8px 25px rgba(138, 43, 226, 0.3);
-        font-family: inherit;
+        box-shadow: 0 8px 25px rgba(163, 206, 241, 0.35);
     }
-
     .login-btn:hover {
+        background: var(--btn-hover-bg-light);
+        box-shadow: 0 12px 35px rgba(163, 206, 241, 0.5);
         transform: translateY(-2px);
-        box-shadow: 0 12px 35px rgba(138, 43, 226, 0.4);
-        background: linear-gradient(135deg, #9932cc 0%, #8a2be2 100%);
+    }
+    .login-modal.dark .login-btn {
+        background: var(--btn-bg-dark);
+        box-shadow: 0 8px 25px rgba(51, 92, 103, 0.7);
+    }
+    .login-modal.dark .login-btn:hover {
+        background: var(--btn-hover-bg-dark);
+        box-shadow: 0 12px 35px rgba(224, 159, 62, 0.85);
     }
 
     .divider {
+        position: relative;
         text-align: center;
         margin: 32px 0;
-        position: relative;
     }
-
     .divider::before {
         content: '';
         position: absolute;
@@ -188,46 +235,37 @@
         left: 0;
         right: 0;
         height: 1px;
+        background: rgba(34, 34, 34, 0.15);
+    }
+    .login-modal.dark .divider::before {
         background: rgba(255, 255, 255, 0.15);
     }
-
     .divider span {
         background: inherit;
         padding: 0 20px;
-        color: rgba(255, 255, 255, 0.6);
+        color: rgba(34, 34, 34, 0.5);
         font-size: 14px;
+    }
+    .login-modal.dark .divider span {
+        color: rgba(238, 238, 238, 0.5);
     }
 
     .signup-link {
         text-align: center;
-        margin-top: 24px;
-        color: rgba(255, 255, 255, 0.7);
         font-size: 14px;
+        color: rgba(34, 34, 34, 0.7);
     }
-
+    .login-modal.dark .signup-link {
+        color: rgba(238, 238, 238, 0.7);
+    }
     .signup-link a {
-        color: rgba(138, 43, 226, 0.9);
-        text-decoration: none;
+        color: var(--link-color-dark);
         font-weight: 500;
+        text-decoration: none;
+        cursor: pointer;
         transition: color 0.3s ease;
     }
-
     .signup-link a:hover {
-        color: #8a2be2;
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 480px) {
-        dialog {
-            width: 90vw;
-        }
-
-        .login-modal {
-            padding: 32px 24px;
-        }
-
-        h1 {
-            font-size: 28px;
-        }
+        color: var(--link-hover-dark);
     }
 </style>

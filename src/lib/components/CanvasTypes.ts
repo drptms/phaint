@@ -99,8 +99,3 @@ export interface DrawingStats {
 	bitmapSize: string;
 	spaceSaved: string;
 }
-
-export interface MouseEventWithCoords extends MouseEvent {
-	canvasX?: number;
-	canvasY?: number;
-}

@@ -1,5 +1,5 @@
 import type { Action, VectorData, VectorElement } from '$lib/components/CanvasTypes';
-import { get, writable } from 'svelte/store';
+import { writable } from 'svelte/store';
 
 export interface WorkBoardState {
 	id: string;
@@ -27,7 +27,9 @@ export interface WebSocketMessage {
 	projectId?: string;
 }
 
-export const connectionStatus = writable<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
+export const connectionStatus = writable<'disconnected' | 'connecting' | 'connected' | 'error'>(
+	'disconnected'
+);
 export const operations = writable<WorkBoardState[]>([]);
 export const users = writable<Record<string, UserPresence>>({});
 
@@ -77,12 +79,13 @@ export class ProjectWebSocket {
 					switch (message.subtype) {
 						case 'shape':
 							operations.update((current) => {
-								current.map(op => {
+								current.map((op) => {
 									if (op && op.id === message.data.id) {
 										for (let i = 0; i < op.vectorData.elements.length; i++) {
-											if (op.vectorData.elements[i] === null || 
-												op.vectorData.elements[i].id === message.data.stroke.id) {
-
+											if (
+												op.vectorData.elements[i] === null ||
+												op.vectorData.elements[i].id === message.data.stroke.id
+											) {
 												op.vectorData.elements[i] = message.data.stroke;
 											}
 										}
@@ -139,12 +142,12 @@ export class ProjectWebSocket {
 					users.update((current) => {
 						const user = current[message.data.userId];
 						if (user) {
-							user.lastSeen = { 
-								canvasId: message.data.canvasId, 
-								position: { 
-									x: message.data.position.x, 
-									y: message.data.position.y 
-								} 
+							user.lastSeen = {
+								canvasId: message.data.canvasId,
+								position: {
+									x: message.data.position.x,
+									y: message.data.position.y
+								}
 							};
 							current[message.data.userId] = user;
 						}
@@ -180,8 +183,8 @@ export class ProjectWebSocket {
 	sendCursor(canvasId: string, point: Point): void {
 		this.sendMessage({
 			type: 'cursor_move',
-			data: { 
-				userId: this.userId, 
+			data: {
+				userId: this.userId,
 				canvasId: canvasId,
 				position: point
 			}
@@ -207,7 +210,6 @@ export class ProjectWebSocket {
 		});
 	}
 
-
 	sendStroke(canvasID: string, stroke: VectorElement, subtype: string): void {
 		this.sendMessage({
 			type: 'operation',
@@ -229,9 +231,5 @@ export class ProjectWebSocket {
 		if (this.ws) {
 			this.ws.close();
 		}
-	}
-
-	isConnected(): boolean {
-		return this.ws !== null && this.ws.readyState === WebSocket.OPEN;
 	}
 }

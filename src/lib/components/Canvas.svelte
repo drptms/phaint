@@ -1,28 +1,26 @@
 <script lang="ts">
 	import { get, type Writable } from 'svelte/store';
 	import {
-		currentTool,
-		currentStrokeColor,
-		currentFillColor,
-		currentStrokeWidth,
-		isDrawing,
 		canvasCursor,
-		vectorDataStore, selectedShapeIds
+		currentFillColor,
+		currentStrokeColor,
+		currentStrokeWidth,
+		currentTool,
+		isDrawing,
+		selectedShapeIds,
+		vectorDataStore
 	} from '$lib/components/CanvasStore';
-	import type {
-		Point,
-		VectorElement,
-		VectorPath,
-		VectorRectangle,
-		VectorCircle,
-		CanvasState
-	} from '$lib/components/CanvasTypes';
+	import type { CanvasState, Point, VectorCircle, VectorElement, VectorPath } from '$lib/components/CanvasTypes';
 	import {
+		findShapeAtPoint,
 		generateId,
 		getCanvasCoordinates,
-		findShapeAtPoint,
-		pointInRectangle, pointInCircle, pointInPath
+		pointInCircle,
+		pointInPath,
+		pointInRectangle
 	} from '$lib/components/CanvasUtils';
+	import { createEventDispatcher, onMount } from 'svelte';
+	import { users } from '$lib/api/websocket.svelte';
 
 	// Canvas references
 	let canvas: HTMLCanvasElement;
@@ -64,11 +62,8 @@
 
 	let selectionMarqueeStart: Point | null = null;
 	let selectionMarqueeEnd: Point | null = null;
-	let dragStartPos: Point | null = null;
 	let initialShapePositions: Map<string, Point> = new Map();
 	let isDraggingSelection = false;
-	import { onMount } from 'svelte';
-	import { users } from '$lib/api/websocket.svelte';
 
 	onMount(async () => {
 		ctx = canvas.getContext('2d')!;
@@ -86,8 +81,6 @@
 				return false;
 		}
 	}
-
-	import { createEventDispatcher } from 'svelte';
 
 	const dispatch = createEventDispatcher();
 
@@ -202,17 +195,13 @@
 				selectionMarqueeStart = null;
 				selectionMarqueeEnd = null;
 
-				// Prepare for dragging if shapes selected:
-				const coords = getCanvasCoordinates(event, canvas);
 				if (get(selectedShapeIds).size > 0) {
 					isDraggingSelection = true;
-					dragStartPos = coords;
 					captureInitialShapePositions(event);
 				}
 			} else {
 				// End dragging shapes
 				isDraggingSelection = false;
-				dragStartPos = null;
 				initialShapePositions.clear();
 			}
 		} else {
@@ -333,7 +322,6 @@
 						initialShapePositions.set(shape.id, { x: shape.cx, y: shape.cy });
 						break;
 					case 'path':
-						// For paths, record first point as reference
 						if (shape.points.length > 0) {
 							initialShapePositions.set(shape.id, { x: shape.points[0].x, y: shape.points[0].y });
 						}
@@ -384,7 +372,6 @@
 		const targetShape = findShapeAtPoint(coords, get(shapes), CANVAS_WIDTH, CANVAS_HEIGHT);
 
 		if (targetShape) {
-			// Fill the clicked shape
 			shapes.update((current) => {
 				return current.map((shape) => {
 					if (shape.id === targetShape.id) {
@@ -395,7 +382,6 @@
 				});
 			});
 		} else {
-			// Fill background
 			backgroundFill.set(get(currentFillColor));
 			sendCanvasMetadata(get(currentFillColor));
 		}
@@ -414,7 +400,7 @@
 
 		switch (get(currentTool)) {
 			case 'rectangle': {
-				const rect: VectorRectangle = {
+				return {
 					...baseProps,
 					type: 'rectangle',
 					x: Math.min(start.x, end.x),
@@ -423,11 +409,10 @@
 					height: Math.abs(end.y - start.y),
 					action: { type: 'none', link: '' }
 				};
-				return rect;
 			}
 			case 'circle': {
 				const radius = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
-				const circle: VectorCircle = {
+				return {
 					...baseProps,
 					type: 'circle',
 					cx: start.x,
@@ -435,7 +420,6 @@
 					radius,
 					action: { type: 'none', link: '' }
 				};
-				return circle;
 			}
 			default:
 				return null;
@@ -555,7 +539,6 @@
 
 		if (isSelected) {
 			ctx.save();
-			// Draw highlight: for example, dashed blue bounding box around shape
 			ctx.strokeStyle = '#007bff';
 			ctx.lineWidth = 2;
 			ctx.setLineDash([6, 4]);

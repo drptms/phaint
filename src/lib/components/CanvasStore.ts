@@ -17,7 +17,7 @@ export function createShapesStore(elements?: VectorElement[]) {
 export function createBackgroundFillStore(backgroundFill?: string) {
 	return writable<string>(backgroundFill || 'none');
 }
-// Canvas state
+
 export const isDrawing = writable<boolean>(false);
 
 // Derived stores for computed values
@@ -47,38 +47,4 @@ export function vectorDataStore(
 			version: '2.0'
 		})
 	);
-}
-
-export function drawingStats(
-	shapes: Writable<VectorElement[]>,
-	backgroundFill: Writable<string>,
-	timestamp: string
-) {
-	const vectorData = vectorDataStore(shapes, backgroundFill, timestamp);
-	return derived(
-		vectorData,
-		($vectorData): DrawingStats => {
-			const vectorStr = JSON.stringify($vectorData);
-			const vectorSizeBytes = new Blob([vectorStr]).size;
-			const bitmapSizeBytes = 800 * 600 * 4; // RGBA
-			const spaceSavedPercent = vectorSizeBytes > 0
-				? ((bitmapSizeBytes - vectorSizeBytes) / bitmapSizeBytes * 100).toFixed(1)
-				: '100';
-
-			return {
-				vectorSize: formatBytes(vectorSizeBytes),
-				bitmapSize: formatBytes(bitmapSizeBytes),
-				spaceSaved: spaceSavedPercent + '%'
-			};
-		}
-	);
-}
-
-// Utility function
-function formatBytes(bytes: number): string {
-	if (bytes === 0) return '0 bytes';
-	const k = 1024;
-	const sizes = ['bytes', 'KB', 'MB'];
-	const i = Math.floor(Math.log(bytes) / Math.log(k));
-	return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }

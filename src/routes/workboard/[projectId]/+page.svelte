@@ -481,7 +481,7 @@
 	}
 
 	.modal {
-		background: white;
+		background: var(--bg-light);
 		padding: 24px 28px;
 		border-radius: 12px;
 		width: 320px;
@@ -496,7 +496,7 @@
 		margin-bottom: 16px;
 		font-size: 1.4rem;
 		font-weight: 600;
-		color: #222;
+		color: var(--color-light);
 		border-bottom: 2px solid #eee;
 		padding-bottom: 8px;
 	}
@@ -525,35 +525,25 @@
 	}
 
 	.modal-buttons .btn {
-		padding: 10px 18px;
-		font-size: 1rem;
-		border-radius: 8px;
-		border: 2px solid #ddd;
-		background: white;
-		color: #333;
-		cursor: pointer;
-		font-weight: 500;
-		transition: all 0.2s ease;
-		font-family: inherit;
+        display: flex;
+        align-items: center;
+        background: linear-gradient(135deg, #a3cef1 0%, #ffcbcb 100%);
+        color: #1a1a1a;
+        border: none;
+        border-radius: 12px;
+        padding: 0.8rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(163, 206, 241, 0.35);
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        gap: 0.5rem;
 	}
 
 	.modal-buttons .btn:hover {
-		border-color: #007bff;
-		background: #f8f9fa;
-		transform: translateY(-1px);
-	}
-
-	.modal-buttons .btn.btn-primary {
-		background: linear-gradient(135deg, #007bff, #0056b3);
-		color: white;
-		border-color: #007bff;
-		box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
-	}
-
-	.modal-buttons .btn.btn-primary:hover {
-		background: linear-gradient(135deg, #0056b3, #004085);
-		border-color: #0056b3;
-		box-shadow: 0 2px 12px rgba(0, 72, 133, 0.5);
+        background: linear-gradient(135deg, #ffcbcb 0%, #a3cef1 100%);
+        transform: translateY(-2px) scale(1.03);
+        box-shadow: 0 16px 40px rgba(255, 203, 203, 0.4);
 	}
 
 	.number-input {
@@ -599,8 +589,7 @@
 	}
 
 	.app-header h1 {
-		color: #333;
-		margin: 0 0 10px 0;
+		color: var(--color-light);
 		font-size: 2.2rem;
 		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 		-webkit-background-clip: text;
@@ -617,22 +606,31 @@
 		max-width: 100%;
 		min-width: 90vw;
 		height: 80vh;
-		overflow: auto;
+		/*overflow: auto;*/
+		scrollbar-width: none;
+        -ms-overflow-style: none; /* IE and Edge */
 	}
 
-	.panel {
-		background: white;
-		border-radius: 12px;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-		overflow: hidden;
-		border: 1px solid #e5e7eb;
+	.app-content::-webkit-scrollbar {
+        width: 0;  /* Chrome, Safari, Opera: hide scrollbar by setting zero width */
+        background: transparent;
 	}
 
-	.panel-content {
+    .panel {
+        background: transparent;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e5e7eb;
+        scrollbar-width: none;
+        -ms-overflow-style: none; /* IE and Edge */
+    }
+
+
+    .panel-content {
 		padding: 16px;
 		display: flex;
 		flex-direction: column;
-		overflow: auto;
+		overflow: scroll;
 		height: 100%;
 	}
 
@@ -640,21 +638,30 @@
 		text-align: center;
 		margin: 0 0 15px 0;
 		font-size: 1.5rem;
-		color: #222;
+		color: var(--color-light);
 		border-bottom: 2px solid #eee;
 		padding-bottom: 10px;
 	}
 
 	.canvas-container {
-		margin-bottom: 10px;
-		display: flex;
-		flex-direction: row;
+        flex: 1 1 100%;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        background: transparent;
+        margin: 0;
+        padding: 0;
+	}
+
+	.tools-panel {
+		overflow: scroll;
 	}
 
 	.tools-panel h3,
 	.data-panel h3 {
 		margin: 0 0 20px 0;
-		color: #333;
+		color: var(--color-light);
 		font-size: 1.3rem;
 	}
 
@@ -682,8 +689,8 @@
 		font-size: 14px;
 		font-weight: 500;
 		transition: all 0.2s ease;
-		background: white;
-		color: #333;
+		background: var(--bg-light);
+		color: var(--color-light);
 		font-family: inherit;
 	}
 
@@ -701,9 +708,10 @@
 	}
 
 	.btn.bucket-tool.active {
-		background: linear-gradient(135deg, #28a745, #20c997);
-		border-color: #28a745;
-		box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        border-color: #007bff;
+        box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
 	}
 
 	.btn-primary {
@@ -794,7 +802,7 @@
 		flex-direction: column;
 		align-items: center;
 		padding: 20px;
-		background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+		background: transparent;
 	}
 
 	.data-panel h4 {

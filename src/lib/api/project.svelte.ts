@@ -12,10 +12,14 @@ export async function getAllUserProjects(userId: string) {
 		});
 
 		return await fetch(request).then(async (res) => {
-			let data =  await res.json();
+			let data = await res.json();
 			// @ts-ignore
-
-			return {own: data.filter(value => value.UID == userId), shared: data.filter(value => value.Collaborators.includes(userId))};
+			return {
+				own: data.filter((value: { UID: string }) => value.UID == userId),
+				shared: data.filter((value: { Collaborators: string | string[] }) =>
+					value.Collaborators.includes(userId)
+				)
+			};
 		});
 	} catch (error) {
 		console.error(error);
@@ -26,7 +30,7 @@ export async function getAllUserProjects(userId: string) {
 export async function addProject(userId: string, projectId: string, projectName: string) {
 	try {
 		const date = new Date();
-		const today = date.getDate() + "/" + (date.getMonth() + 1) + "/" + date.getFullYear();
+		const today = date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear();
 
 		const headers: Headers = new Headers();
 		headers.set('Content-Type', 'application/json');
@@ -35,7 +39,12 @@ export async function addProject(userId: string, projectId: string, projectName:
 		const request: RequestInfo = new Request(LOCAL_API_KEY + '/projects', {
 			method: 'POST',
 			headers: headers,
-			body: JSON.stringify({ "UID": userId, "PID": projectId, "projectName": projectName, "CreationDate": today })
+			body: JSON.stringify({
+				UID: userId,
+				PID: projectId,
+				projectName: projectName,
+				CreationDate: today
+			})
 		});
 
 		return await fetch(request).then(async (res) => {
@@ -55,7 +64,10 @@ export async function acceptInvitation(userId: string, inviteLink: string) {
 		const request: RequestInfo = new Request(LOCAL_API_KEY + '/invitations/accept', {
 			method: 'POST',
 			headers: headers,
-			body: JSON.stringify({ UID: userId, inviteLink: inviteLink })
+			body: JSON.stringify({
+				UID: userId,
+				inviteLink: inviteLink
+			})
 		});
 		return await fetch(request).then(async (res) => {
 			return await res.json();
@@ -75,7 +87,10 @@ export async function CreateInvitationLink(userId: string, projectId: string) {
 		const request: RequestInfo = new Request(LOCAL_API_KEY + '/invitations', {
 			method: 'POST',
 			headers: headers,
-			body: JSON.stringify({ "UID": userId, "PID": projectId })
+			body: JSON.stringify({
+				UID: userId,
+				PID: projectId
+			})
 		});
 		return await fetch(request).then(async (res) => {
 			return await res.json();

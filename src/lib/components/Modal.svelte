@@ -14,12 +14,9 @@
 	}
 </script>
 
-<!--{#if userId.length === 0}-->
-
 {#if userId}
 	<LogoutModal
 		bind:showModal={showModal}
-		switchModal={switchModal}
 	/>
 {:else}
 	{#if activeTab === 'login'}

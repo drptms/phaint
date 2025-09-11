@@ -1,5 +1,6 @@
 <script>
-	let { showModal = $bindable(), switchModal } = $props();
+	let { showModal = $bindable() } = $props();
+	import { darkMode } from '$lib/stores/theme';
 
 	let dialog = $state(); // HTMLDialogElement
 
@@ -11,21 +12,36 @@
 <!-- The Login Dialog -->
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-<dialog id="loginDialog"
+<dialog id="loginDialog" class:dark={$darkMode}
 				bind:this={dialog}
 				onclose={() => (showModal = false)}
 				onclick={(e) => { if (e.target === dialog) dialog.close(); }}>
-	<div class="login-modal">
-		<h1>Logout</h1>
-		<p class="subtitle">See you!</p>
-		<form id="loginForm" method="POST" action="/logout?/logout">
-			<button type="submit" class="login-btn">Logout</button>
+	<div class="login-modal" class:dark={$darkMode}>
+		<h1 class:dark={$darkMode}>Logout</h1>
+		<p class="subtitle" class:dark={$darkMode}>See you!</p>
+		<form id="loginForm" class:dark={$darkMode} method="POST" action="/logout?/logout">
+			<button type="submit" class="login-btn" class:dark={$darkMode}>Logout</button>
 		</form>
 	</div>
 </dialog>
 
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    :root {
+        --bg-light: linear-gradient(135deg, #e7e9fc, #cddbff);
+        --bg-dark: linear-gradient(135deg, #2b193b, #473275);
+
+        --text-light: #222;
+        --text-dark: #eee;
+
+        --btn-bg-light: linear-gradient(135deg, #a3cef1, #ffcbcb);
+        --btn-bg-dark: linear-gradient(135deg, #335c67, #e09f3e);
+
+        --btn-hover-bg-light: linear-gradient(135deg, #c0dbfb, #ffc0c0);
+        --btn-hover-bg-dark: linear-gradient(135deg, #4b7a86, #f8c26e);
+
+        --text-muted-light: rgba(34, 34, 34, 0.7);
+        --text-muted-dark: rgba(238, 238, 238, 0.7);
+    }
 
     dialog {
         border: none;
@@ -35,6 +51,7 @@
         padding: 0;
         background: transparent;
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+        transition: box-shadow 0.3s ease;
     }
 
     dialog::backdrop {
@@ -43,50 +60,44 @@
     }
 
     .login-modal {
-        background: linear-gradient(135deg,
-        rgba(20, 15, 40, 0.98) 0%,
-        rgba(35, 25, 60, 0.95) 50%,
-        rgba(50, 35, 80, 0.92) 100%);
+        background: var(--bg-light);
         border-radius: 20px;
         padding: 40px 35px;
-        color: white;
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        color: var(--text-light);
+        font-family: 'Inter', 'Roboto', Arial, sans-serif;
         position: relative;
         overflow: hidden;
+        backdrop-filter: blur(8px);
+        transition: background 0.5s ease, color 0.5s ease;
     }
-
-    .login-modal::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(135deg,
-        rgba(138, 43, 226, 0.1) 0%,
-        rgba(30, 144, 255, 0.05) 100%);
-        border-radius: 20px;
-        pointer-events: none;
-    }
-
-    .login-modal > * {
-        position: relative;
-        z-index: 1;
+    .login-modal.dark {
+        background: var(--bg-dark);
+        color: var(--text-dark);
+        box-shadow: 0 8px 32px 0 rgba(58, 20, 103, 0.5),
+        0 1.5px 6px 0 rgba(20, 20, 40, 0.3);
     }
 
     h1 {
         font-size: 32px;
         font-weight: 600;
         margin: 0 0 8px 0;
-        color: white;
         letter-spacing: -0.5px;
+        transition: color 0.5s ease;
+    }
+    .login-modal.dark h1 {
+        color: var(--text-dark);
+        text-shadow: 0 0 10px rgba(180, 160, 245, 0.7);
     }
 
     .subtitle {
-        color: rgba(255, 255, 255, 0.7);
         font-size: 14px;
-        margin: 0 0 32px 0;
         font-weight: 400;
+        margin: 0 0 32px 0;
+        color: var(--text-muted-light);
+        transition: color 0.5s ease;
+    }
+    .login-modal.dark .subtitle {
+        color: var(--text-muted-dark);
     }
 
     form {
@@ -95,44 +106,33 @@
         gap: 16px;
     }
 
-    input[type="text"],
-    input[type="password"] {
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 12px;
-        padding: 16px 18px;
-        color: white;
-        font-size: 16px;
-        font-family: inherit;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
-    }
-
-    ::placeholder {
-        color: rgba(255, 255, 255, 0.5);
-    }
-
     .login-btn {
-        background: linear-gradient(135deg, #8a2be2 0%, #9932cc 100%);
+        background: var(--btn-bg-light);
         border: none;
         border-radius: 12px;
         padding: 16px 24px;
-        color: white;
         font-size: 16px;
         font-weight: 600;
         cursor: pointer;
+        color: white;
         transition: all 0.3s ease;
-        box-shadow: 0 8px 25px rgba(138, 43, 226, 0.3);
+        box-shadow: 0 8px 25px rgba(163, 206, 241, 0.35);
         font-family: inherit;
     }
-
     .login-btn:hover {
+        background: var(--btn-hover-bg-light);
+        box-shadow: 0 12px 35px rgba(163, 206, 241, 0.5);
         transform: translateY(-2px);
-        box-shadow: 0 12px 35px rgba(138, 43, 226, 0.4);
-        background: linear-gradient(135deg, #9932cc 0%, #8a2be2 100%);
+    }
+    .login-modal.dark .login-btn {
+        background: var(--btn-bg-dark);
+        box-shadow: 0 8px 25px rgba(51, 92, 103, 0.7);
+    }
+    .login-modal.dark .login-btn:hover {
+        background: var(--btn-hover-bg-dark);
+        box-shadow: 0 12px 35px rgba(224, 159, 62, 0.85);
     }
 
-    /* Responsive adjustments */
     @media (max-width: 480px) {
         dialog {
             width: 90vw;
