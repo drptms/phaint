@@ -1,4 +1,5 @@
 <script lang="ts">
+	import InvitationModal from '$lib/components/InvitationModal.svelte';
 	import ProjectCard from '$lib/components/ProjectCard.svelte';
 	import ProjectModal from '$lib/components/ProjectModal.svelte';
 	import type { PageData } from './$types';
@@ -7,6 +8,7 @@
 	let user = data.username;
 
 	let showModal = $state(false);
+	let showInvitationModal = $state(false);
 
 	function openModal() {
 		showModal = true;
@@ -14,25 +16,54 @@
 	function closeModal() {
 		showModal = false;
 	}
+
+    function openInvitationModal() {
+		showInvitationModal = true;
+	}
+	function closeInvitationModal() {
+		showInvitationModal = false;
+	}
 </script>
 
 <div class="dashboard-header">
 	<h1 class="dashboard-greeting">Hello {user}</h1>
-	<button class="add-project-btn" onclick={openModal}>
-		<!-- svg unchanged -->
-		Add Project
-	</button>
-</div>
+    <div class="button-group">
+        <button class="add-project-btn" onclick={openInvitationModal}>
+            <!-- svg unchanged -->
+            Accept Invitation
+        </button>
+        <button class="add-project-btn" onclick={openModal}>
+            <!-- svg unchanged -->
+            Add Project
+        </button>
+    </div>
+</div>  
 
 <ProjectModal
 	open={showModal}
 	onClose={closeModal}
 />
 
+<InvitationModal
+	open={showInvitationModal}
+	onClose={closeInvitationModal}
+/>
+
 <div class="project-container">
-	{#each data.userProjects as item}
-		<ProjectCard {item} />
-	{/each}
+    <h2>Your Projects</h2>
+    <div class="own-projects">
+        
+        {#each data.own as item}
+            <ProjectCard {item} />
+        {/each}
+    </div>
+    <h2>Shared Projects</h2>
+    <div class="shared-projects">
+        
+        {#each data.shared as item}
+            <ProjectCard {item} />
+        {/each}
+    </div>
 </div>
 
 <style>
@@ -55,6 +86,11 @@
         text-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
         letter-spacing: -1px;
         margin: 0;
+    }
+
+    .button-group {
+        display: flex;
+        gap: 1rem;
     }
 
     .add-project-btn {
@@ -81,12 +117,24 @@
     }
 
     .project-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        padding: 0 0.5rem 2rem 0.5rem;
+        max-width: 1100px; /* Optional for better max width */
+        margin: 0 auto;
+    }
+
+    .own-projects, .shared-projects {
         display: grid;
         grid-template-columns: repeat(4, 260px);
         gap: 2rem;
-        padding: 0 0.5rem 2rem 0.5rem;
-        margin-top: 0;
-        justify-content: center; /* centers grid if container is wider */
+        justify-content: center;
+    }
+
+    .shared-projects {
+        border-top: 2px solid #e0e0e0; /* Horizontal dividing line */
+        padding-top: 2rem;
     }
 
 

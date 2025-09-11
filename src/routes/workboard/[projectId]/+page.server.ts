@@ -1,4 +1,5 @@
-import type { PageServerLoad } from './$types';
+import { CreateInvitationLink } from '$lib/api/project.svelte';
+import type { Actions, PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params, cookies }) => {
 	const projectId = params.projectId;
@@ -7,3 +8,12 @@ export const load: PageServerLoad = async ({ params, cookies }) => {
 	// Return data needed by the client component
 	return { projectId, userId };
 };
+
+export const actions = {
+	createInvitationLink: async ({ cookies, request }) => {
+		let data = await request.formData();
+		let userId = cookies.get('userId') as string;
+		let projectId = data.get('projectId') as string;
+		return await CreateInvitationLink(userId, projectId);
+	}
+} satisfies Actions;
