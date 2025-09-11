@@ -52,7 +52,6 @@ export async function acceptInvitation(userId: string, inviteLink: string) {
 		const headers: Headers = new Headers();
 		headers.set('Content-Type', 'application/json');
 		headers.set('Accept', 'application/json');
-		console.log("inviteLink: " + inviteLink);
 		const request: RequestInfo = new Request(LOCAL_API_KEY + '/invitations/accept', {
 			method: 'POST',
 			headers: headers,
