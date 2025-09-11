@@ -12,11 +12,14 @@ export function generateId(): string {
  * Get canvas coordinates from mouse event
  */
 export function getCanvasCoordinates(event: MouseEvent, canvas: HTMLCanvasElement): Point {
-	const rect = canvas.getBoundingClientRect();
-	return {
-		x: event.clientX - rect.left,
-		y: event.clientY - rect.top
-	};
+	    const rect = canvas.getBoundingClientRect();
+		const scaleX = canvas.width / rect.width;   // scale factor in X direction
+		const scaleY = canvas.height / rect.height; // scale factor in Y direction
+
+		return {
+			x: (event.clientX - rect.left) * scaleX,
+			y: (event.clientY - rect.top) * scaleY,
+		};
 }
 
 export function isPathClosed(points: Point[], threshold: number = 10): boolean {
