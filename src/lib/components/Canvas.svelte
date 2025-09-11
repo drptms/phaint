@@ -49,10 +49,10 @@
 		sendStrokes,
 		sendCanvasMetadata,
 		sendCursorPosition
-	}: { 
-		shapes: Writable<VectorElement[]>; 
-		backgroundFill: Writable<string>; 
-		timestamp: string; 
+	}: {
+		shapes: Writable<VectorElement[]>;
+		backgroundFill: Writable<string>;
+		timestamp: string;
 		canvasId: string;
 		clientId: string | null;
 		sendStrokes: (stroke: VectorElement) => void;
@@ -88,6 +88,7 @@
 	}
 
 	import { createEventDispatcher } from 'svelte';
+
 	const dispatch = createEventDispatcher();
 
 	// Canvas event handlers
@@ -113,23 +114,23 @@
 	}
 
 	$effect(() => {
-        try {
-            if ($users && clientId) {
-                for (const [userId, presence] of Object.entries($users)) {
+		try {
+			if ($users && clientId) {
+				for (const [userId, presence] of Object.entries($users)) {
 					if (clientId !== userId && presence.lastSeen.canvasId === canvasId) {
 						drawPeerPointer(presence.lastSeen.position, userId, presence.color);
 					}
 				}
-            }
-        } catch (e) {
-            console.error('Error in operations subscription:', e);
-        }
+			}
+		} catch (e) {
+			console.error('Error in operations subscription:', e);
+		}
 	});
 
 	function drawPeerPointer(
 		position: { x: number; y: number },
 		name: string,
-		color: string = "rgba(0, 0, 0, 0.3)"
+		color: string = 'rgba(0, 0, 0, 0.3)'
 	) {
 		redrawCanvas();
 		const radius = 8;
@@ -147,10 +148,10 @@
 		ctx.fill();
 
 		// Draw the name below the circle
-		ctx.shadowColor = "transparent"; // Disable shadow for text
-		ctx.fillStyle = "black"; // Text color
-		ctx.font = "12px Arial";
-		ctx.textAlign = "center"; // Align text center under the circle
+		ctx.shadowColor = 'transparent'; // Disable shadow for text
+		ctx.fillStyle = 'black'; // Text color
+		ctx.font = '12px Arial';
+		ctx.textAlign = 'center'; // Align text center under the circle
 		if (name.length > 8) name = name.slice(0, 8) + '...';
 		ctx.fillText(name, position.x, position.y + radius + 15);
 
@@ -227,16 +228,16 @@
 					stroke: get(currentStrokeColor),
 					strokeWidth: get(currentStrokeWidth),
 					fill: 'none',
-					action: { type: 'none', link: ''}
+					action: { type: 'none', link: '' }
 				};
 				shapes.update((current) => [...current, pathShape]);
-				sendStrokes(pathShape)
+				sendStrokes(pathShape);
 				canvasState.currentPath = [];
 			} else if (canvasState.tempShapeStart) {
 				const shape = createShapeVector(canvasState.tempShapeStart, coords);
 				if (shape) {
 					shapes.update((current) => [...current, shape]);
-					sendStrokes(shape)
+					sendStrokes(shape);
 				}
 				canvasState.tempShapeStart = null;
 			}
@@ -355,7 +356,7 @@
 				stroke: get(currentStrokeColor),
 				strokeWidth: get(currentStrokeWidth),
 				fill: 'none',
-				action: { type: 'none', link: ''}
+				action: { type: 'none', link: '' }
 			};
 			shapes.update((current) => [...current, pathShape]);
 			sendStrokes(pathShape);
@@ -420,7 +421,7 @@
 					y: Math.min(start.y, end.y),
 					width: Math.abs(end.x - start.x),
 					height: Math.abs(end.y - start.y),
-					action: { type: 'none', link: ''}
+					action: { type: 'none', link: '' }
 				};
 				return rect;
 			}
@@ -432,7 +433,7 @@
 					cx: start.x,
 					cy: start.y,
 					radius,
-					action: { type: 'none', link: ''}
+					action: { type: 'none', link: '' }
 				};
 				return circle;
 			}

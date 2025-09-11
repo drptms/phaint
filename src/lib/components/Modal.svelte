@@ -5,8 +5,6 @@
 
 	let { activeTab = $bindable(), showModal = $bindable(), userId = $bindable() } = $props();
 
-	console.log(userId);
-
 	function switchModal() {
 		if (activeTab === 'login') {
 			activeTab = 'register';

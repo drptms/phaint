@@ -1,4 +1,4 @@
-import type { VectorData, VectorElement } from '$lib/components/CanvasTypes';
+import type { Action, VectorData, VectorElement } from '$lib/components/CanvasTypes';
 import { get, writable } from 'svelte/store';
 
 export interface WorkBoardState {
@@ -49,7 +49,6 @@ export class ProjectWebSocket {
 			this.ws = new WebSocket(wsUrl);
 
 			this.ws.onopen = () => {
-				console.log(`WebSocket connected to project ${this.projectId}`);
 				connectionStatus.set('connected');
 				resolve();
 			};
@@ -59,7 +58,6 @@ export class ProjectWebSocket {
 			};
 
 			this.ws.onclose = () => {
-				console.log('WebSocket disconnected');
 				connectionStatus.set('disconnected');
 			};
 
@@ -115,6 +113,20 @@ export class ProjectWebSocket {
 								return current;
 							});
 							break;
+						case 'action':
+							operations.update((current) => {
+								current.map((wb) => {
+									if (wb.id == message.data.canvasId) {
+										for (let i = 0; i < wb.vectorData.elements.length; i++) {
+											if (wb.vectorData.elements[i].id == message.data.vectorElementId) {
+												wb.vectorData.elements[i].action = message.data.action;
+											}
+										}
+									}
+								});
+								return current;
+							});
+							break;
 						default:
 							operations.set(message.data as WorkBoardState[]);
 							break;
@@ -150,6 +162,18 @@ export class ProjectWebSocket {
 			type: 'operation',
 			subtype: subtype,
 			data: operation
+		});
+	}
+
+	sendAction(canvasId: string, vectorElementId: string, action: Action): void {
+		this.sendMessage({
+			type: 'operation',
+			subtype: 'action',
+			data: {
+				action: action,
+				canvasId: canvasId,
+				vectorElementId: vectorElementId
+			}
 		});
 	}
 

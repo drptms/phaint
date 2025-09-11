@@ -17,7 +17,7 @@
 		CanvasType,
 		VectorElement
 	} from '$lib/components/CanvasTypes';
-	import { generateId } from '$lib/components/CanvasUtils';
+	import { downloadAsPDF, generateId } from '$lib/components/CanvasUtils';
 	import { showLayout } from '$lib/stores/ui';
 
 	// Tools configuration
@@ -76,7 +76,6 @@
 		socket = new ProjectWebSocket(projectId, userId);
 		try {
 			await socket.connect();
-			console.log('Connected to project:', projectId);
 		} catch (error) {
 			console.error('Failed to connect:', error);
 		}
@@ -142,10 +141,12 @@
 			shapesArray.forEach(shape => {
 				if (get(selectedShapeIds).has(shape.id)) {
 					if (selectedAction.startsWith('goto')) {
-						shape.action = {
+						const action = {
 							type: 'goto',
 							link: gotoPageNumber.toString()
 						};
+						shape.action = action;
+						socket.sendAction(canvas.id, shape.id, action);
 					}
 				}
 			});
@@ -226,6 +227,10 @@
 
 	function removeCanvasRef(index: number) {
 		canvasRefs.splice(index, 1);
+	}
+
+	function downloadPDF() {
+		downloadAsPDF(canvases.map((c) => get(vectorDataStore(c.shapes, c.backgroundFill, c.timestamp))), "").catch((e) => console.log(e))
 	}
 </script>
 
@@ -345,6 +350,9 @@
 				<div class="form-group action-buttons">
 					<button onclick={addNewPage} class="btn btn-primary" type="button"> ➕ New Page</button>
 				</div>
+				<div class="form-group action-buttons">
+					<button onclick={downloadPDF} class="btn btn-primary" type="button"> ➕ PDF </button>
+				</div>
 				<h4>Add Behavior:</h4>
 				<!-- Action Buttons -->
 				<div class="form-group action-buttons">
@@ -352,7 +360,6 @@
 				</div>
 				<div class="user-list">
 					{#each Object.values($users) as user}
-						{#if user.userId !== userId}
 							<div class="user-item" title={`User ID: ${user.userId}, Color: ${user.color}`}>
 								<div
 									class="user-color-indicator"
@@ -364,7 +371,6 @@
 									<p class="user-color" title={user.color}>{user.color}</p>
 								</div>
 							</div>
-						{/if}
 					{/each}
 				</div>
 			</div>
