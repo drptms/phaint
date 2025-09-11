@@ -4,7 +4,7 @@
 	let { item = $bindable()} = $props();
 
 	function handleClick() {
-		goto(`/workboard/${item.PID}`)
+		goto(`/workboard/${item.PID}?name=${item.ProjectName}`);
 	}
 </script>
 

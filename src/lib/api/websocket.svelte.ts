@@ -13,6 +13,7 @@ export interface Point {
 
 export interface UserPresence {
 	userId: string;
+	username?: string;
 	cursor?: Point;
 	color: string;
 	isDrawing: boolean;
@@ -35,17 +36,22 @@ export class ProjectWebSocket {
 	private ws: WebSocket | null = null;
 	private readonly projectId: string;
 	private readonly userId: string;
+	private readonly username: string;
 
-	constructor(projectId: string, userId: string) {
+	constructor(projectId: string, userId: string, username: string) {
 		this.projectId = projectId;
 		this.userId = userId;
+		this.username = username;
 	}
 
 	connect(): Promise<void> {
 		return new Promise((resolve, reject) => {
 			connectionStatus.set('connecting');
 
-			const wsUrl = `ws://localhost:8080/connect?projectId=${encodeURIComponent(this.projectId)}&userId=${encodeURIComponent(this.userId)}`;
+			const wsUrl = `ws://localhost:8080/connect?
+				projectId=${encodeURIComponent(this.projectId)}&
+				userId=${encodeURIComponent(this.userId)}&
+				username=${encodeURIComponent(this.username)}`;
 			this.ws = new WebSocket(wsUrl);
 
 			this.ws.onopen = () => {
@@ -139,6 +145,7 @@ export class ProjectWebSocket {
 					users.update((current) => {
 						const user = current[message.data.userId];
 						if (user) {
+							user.username = message.data.username;
 							user.lastSeen = { 
 								canvasId: message.data.canvasId, 
 								position: { 
@@ -147,6 +154,10 @@ export class ProjectWebSocket {
 								} 
 							};
 							current[message.data.userId] = user;
+						} else {
+							current[message.data.userId] = {
+								...message.data
+							};
 						}
 						return current;
 					});
@@ -177,11 +188,12 @@ export class ProjectWebSocket {
 		});
 	}
 
-	sendCursor(canvasId: string, point: Point): void {
+	sendCursor(username: string, canvasId: string, point: Point): void {
 		this.sendMessage({
 			type: 'cursor_move',
 			data: { 
 				userId: this.userId, 
+				username: username,
 				canvasId: canvasId,
 				position: point
 			}

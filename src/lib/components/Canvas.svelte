@@ -72,6 +72,19 @@
 
 	onMount(async () => {
 		ctx = canvas.getContext('2d')!;
+
+		try {
+			if ($users && clientId) {
+				for (const [userId, presence] of Object.entries($users)) {
+					if (clientId !== userId && presence.lastSeen.canvasId === canvasId) {
+						drawPeerPointer(presence.lastSeen.position, presence.username || "Anonymous", presence.color);
+					}
+				}
+			}
+		} catch (e) {
+			console.error('Error in operations subscription:', e);
+		}
+
 	});
 
 	function isPointInVectorElement(point: Point, element: VectorElement): boolean {
@@ -118,7 +131,7 @@
 			if ($users && clientId) {
 				for (const [userId, presence] of Object.entries($users)) {
 					if (clientId !== userId && presence.lastSeen.canvasId === canvasId) {
-						drawPeerPointer(presence.lastSeen.position, userId, presence.color);
+						drawPeerPointer(presence.lastSeen.position, presence.username || "Anonymous", presence.color);
 					}
 				}
 			}

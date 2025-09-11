@@ -65,6 +65,8 @@
 	let { data }: { data: PageData } = $props();
 	let projectId = data.projectId;
 	let userId = data.userId;
+	let username = data.username || 'Anonymous';
+	let projectName = data.projectName || 'Untitled';
 
 	let socket: ProjectWebSocket;
 
@@ -84,7 +86,7 @@
 			console.error('Missing projectId or userId');
 			return;
 		}
-		socket = new ProjectWebSocket(projectId, userId);
+		socket = new ProjectWebSocket(projectId, userId, username);
 		try {
 			await socket.connect();
 		} catch (error) {
@@ -209,7 +211,7 @@
 	}
 
 	function sendCursor(canvasId: string, point: { x: number; y: number }): void {
-		socket.sendCursor(canvasId, point);
+		socket.sendCursor(username, canvasId, point);
 	}
 
 	async function createInvitation(): Promise<void> {
@@ -275,7 +277,7 @@
 <div class="app-container">
 	<header class="app-header">
 		<button class="btn-nobg" onclick={() => history.go(-1)}>⬅️</button>
-		<h1>🎨 Project Name</h1>
+		<h1>🎨 {projectName}</h1>
 	</header>
 
 	<div class="app-content">
@@ -408,14 +410,14 @@
 				<div class="user-list">
 					{#each Object.values($users) as user}
 						{#if user.userId !== userId}
-							<div class="user-item" title={`User ID: ${user.userId}, Color: ${user.color}`}>
+							<div class="user-item" title={`User ID: ${user.username}, Color: ${user.color}`}>
 								<div
 									class="user-color-indicator"
 									style="background-color: {user.color}"
-									aria-label={`Color for user ${user.userId}`}
+									aria-label={`Color for user ${user.username}`}
 								></div>
 								<div class="user-text">
-									<p class="user-id" title={user.userId}>{user.userId}</p>
+									<p class="user-id" title={user.username}>{user.username}</p>
 									<p class="user-color" title={user.color}>{user.color}</p>
 								</div>
 							</div>
