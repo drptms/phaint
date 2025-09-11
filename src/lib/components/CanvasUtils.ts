@@ -245,7 +245,16 @@ export function downloadAsJSON(data: VectorData, filename: string): void {
 	URL.revokeObjectURL(url);
 }
 
-import { PDFArray, PDFDict, PDFDocument, rgb, PDFNumber, PDFName, PDFString, PDFContext } from 'pdf-lib';
+import {
+	PDFArray,
+	PDFDict,
+	PDFDocument,
+	rgb,
+	PDFNumber,
+	PDFName,
+	PDFString,
+	PDFContext
+} from 'pdf-lib';
 import { PDFPage } from 'pdf-lib/cjs';
 
 function hexToRgbNormalized(hex: string): { r: number; g: number; b: number } {
@@ -311,18 +320,24 @@ function createUriActionDict(url: string, context: PDFContext): PDFDict {
 }
 
 export function addLinkAnnotation(
+	pdfDoc: PDFDocument,
 	page: PDFPage,
 	url: string,
-	rect: [number, number, number, number],
+	rect: [number, number, number, number]
 ) {
 	const context = page.doc.context;
 
-	// Create the action dictionary for the link
-	const actionDict = createUriActionDict(url, context);
+	const targetPage = pdfDoc.getPage(parseInt(url) - 1);
+	const targetPageRef = targetPage.ref;
+	const destArray = context.obj([targetPageRef, PDFName.of('XYZ'), 0, 0, null]);
+
+	const gotoAction = PDFDict.withContext(context);
+	gotoAction.set(PDFName.of('S'), PDFName.of('GoTo'));
+	gotoAction.set(PDFName.of('D'), destArray);
 
 	// Create the rectangle array for the annotation
 	const rectArray = PDFArray.withContext(context);
-	rect.forEach(n => rectArray.push(PDFNumber.of(n)));
+	rect.forEach((n) => rectArray.push(PDFNumber.of(n)));
 
 	// Create the annotation dictionary
 	const linkAnnotation = PDFDict.withContext(context);
@@ -330,7 +345,7 @@ export function addLinkAnnotation(
 	linkAnnotation.set(PDFName.of('Subtype'), PDFName.of('Link'));
 	linkAnnotation.set(PDFName.of('Rect'), rectArray);
 	linkAnnotation.set(PDFName.of('Border'), context.obj([0, 0, 0])); // No border
-	linkAnnotation.set(PDFName.of('A'), actionDict);
+	linkAnnotation.set(PDFName.of('A'), gotoAction);
 
 	// Add the annotation dictionary to the PDF document and get a reference
 	const linkRef = context.register(linkAnnotation);
@@ -349,11 +364,17 @@ export function addLinkAnnotation(
 	}
 }
 
-export async function downloadAsPDF(canvases: VectorData[], filename: string): Promise<void> {
+export async function downloadAsPDF(canvases: VectorData[]): Promise<void> {
 	const pdfDoc = await PDFDocument.create();
 
 	for (const canvas of canvases) {
-		const page = pdfDoc.addPage([canvas.width, canvas.height]);
+		pdfDoc.addPage([canvas.width, canvas.height]);
+	}
+
+	let idx = 0
+	for (const canvas of canvases) {
+		const page = pdfDoc.getPage(idx);
+		idx++;
 
 		// Fill background color
 		const bgColor = hexToRgbNormalized(canvas.backgroundFill);
@@ -377,14 +398,15 @@ export async function downloadAsPDF(canvases: VectorData[], filename: string): P
 					page.moveTo(points[0].x, canvas.height - points[0].y);
 					for (let i = 0; i < points.length - 1; i++) {
 						page.drawLine({
-							start: {x: points[i].x, y: canvas.height - points[i].y},
-							end: {x: points[i+1].x, y: canvas.height - points[i+1].y},
+							start: { x: points[i].x, y: canvas.height - points[i].y },
+							end: { x: points[i + 1].x, y: canvas.height - points[i + 1].y },
 							thickness: element.strokeWidth,
-							color: rgb(stroke.r, stroke.g, stroke.b)});
+							color: rgb(stroke.r, stroke.g, stroke.b)
+						});
 					}
 
 					// Add link annotation along bounding box of path if action is link
-					if (element.action?.type === 'link' && element.action.link) {
+					if (element.action?.type === 'goto' && element.action.link) {
 						// Calculate bounding box of points
 						const xs = points.map((p) => p.x);
 						const ys = points.map((p) => canvas.height - p.y);
@@ -393,7 +415,7 @@ export async function downloadAsPDF(canvases: VectorData[], filename: string): P
 						const minY = Math.min(...ys);
 						const maxY = Math.max(...ys);
 
-						addLinkAnnotation(page, element.action.link, [minX, minY, maxX, maxY])
+						addLinkAnnotation(pdfDoc, page, element.action.link, [minX, minY, maxX, maxY]);
 					}
 
 					break;
@@ -410,8 +432,13 @@ export async function downloadAsPDF(canvases: VectorData[], filename: string): P
 						borderWidth: element.strokeWidth
 					});
 
-					if (element.action?.type === 'link' && element.action.link) {
-						addLinkAnnotation(page, element.action.link, [element.x, y, element.x + element.width, y + element.height])
+					if (element.action?.type === 'goto' && element.action.link) {
+						addLinkAnnotation(pdfDoc, page, element.action.link, [
+							element.x,
+							y,
+							element.x + element.width,
+							y + element.height
+						]);
 					}
 
 					break;
@@ -427,14 +454,14 @@ export async function downloadAsPDF(canvases: VectorData[], filename: string): P
 						borderWidth: element.strokeWidth
 					});
 
-					if (element.action?.type === 'link' && element.action.link) {
+					if (element.action?.type === 'goto' && element.action.link) {
 						// Circle bounding box for annotation
 						const left = element.cx - element.radius;
 						const bottom = centerY - element.radius;
 						const right = element.cx + element.radius;
 						const top = centerY + element.radius;
 
-						addLinkAnnotation(page, element.action.link, [left, bottom, right, top])
+						addLinkAnnotation(pdfDoc, page, element.action.link, [left, bottom, right, top]);
 					}
 
 					break;
