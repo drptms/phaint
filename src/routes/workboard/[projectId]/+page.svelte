@@ -18,6 +18,7 @@
 	} from '$lib/components/CanvasTypes';
 	import { downloadAsPDF, generateId } from '$lib/components/CanvasUtils';
 	import { showLayout } from '$lib/stores/ui';
+	import { darkMode } from '$lib/stores/theme';
 
 	// Tools configuration
 	const tools: Tool[] = [
@@ -272,25 +273,25 @@
 	<title>Svelte + TypeScript Vector Drawing App</title>
 </svelte:head>
 
-<div class="app-container">
-	<header class="app-header">
-		<button class="btn-nobg" onclick={() => history.go(-1)}>⬅️</button>
-		<h1>🎨 Project Name</h1>
+<div class="app-container" class:dark={$darkMode}>
+	<header class="app-header" class:dark={$darkMode}>
+		<button class="btn-nobg" class:dark={$darkMode} onclick={() => history.go(-1)}>⬅️</button>
+		<h1 class:dark={$darkMode}>🎨 Project Name</h1>
 	</header>
 
-	<div class="app-content">
+	<div class="app-content" class:dark={$darkMode}>
 		<!-- Left Panel: Drawing Tools -->
-		<div class="panel tools-panel">
-			<div class="panel-content">
-				<h3>🛠️ Drawing Tools</h3>
+		<div class="panel tools-panel" class:dark={$darkMode}>
+			<div class="panel-content" class:dark={$darkMode}>
+				<h3 class:dark={$darkMode}>🛠️ Drawing Tools</h3>
 
 				<!-- Tool Selection -->
-				<div class="form-group">
-					<h4 class="form-label">Tool:</h4>
-					<div class="tool-buttons">
+				<div class="form-group" class:dark={$darkMode}>
+					<h4 class="form-label" class:dark={$darkMode}>Tool:</h4>
+					<div class="tool-buttons" class:dark={$darkMode}>
 						{#each tools as tool}
 							<button
-								class="btn tool-btn"
+								class="btn tool-btn" class:dark={$darkMode}
 								class:active={$currentTool === tool.id}
 								class:bucket-tool={tool.id === 'bucket'}
 								onclick={() => selectTool(tool.id)}
@@ -304,12 +305,12 @@
 				</div>
 
 				<!-- Stroke Color Selection -->
-				<div class="form-group">
-					<h4 class="form-label">Stroke Color:</h4>
-					<div class="color-palette">
+				<div class="form-group" class:dark={$darkMode}>
+					<h4 class="form-label" class:dark={$darkMode}>Stroke Color:</h4>
+					<div class="color-palette" class:dark={$darkMode}>
 						{#each colors as color}
 							<button
-								class="color-swatch"
+								class="color-swatch" class:dark={$darkMode}
 								class:active={$currentStrokeColor === color}
 								style="background-color: {color};"
 								onclick={() => selectStrokeColor(color)}
@@ -321,12 +322,12 @@
 				</div>
 
 				<!-- Fill Color Selection -->
-				<div class="form-group">
-					<h4 class="form-label">Fill Color:</h4>
-					<div class="color-palette">
+				<div class="form-group" class:dark={$darkMode}>
+					<h4 class="form-label" class:dark={$darkMode}>Fill Color:</h4>
+					<div class="color-palette" class:dark={$darkMode}>
 						{#each colors as color}
 							<button
-								class="color-swatch"
+								class="color-swatch" class:dark={$darkMode}
 								class:active={$currentFillColor === color}
 								style="background-color: {color};"
 								onclick={() => selectFillColor(color)}
@@ -338,25 +339,26 @@
 				</div>
 
 				<!-- Stroke Width -->
-				<div class="form-group">
-					<h4 class="form-label">Stroke Width: {$currentStrokeWidth}px</h4>
+				<div class="form-group" class:dark={$darkMode}>
+					<h4 class="form-label" class:dark={$darkMode}>Stroke Width: {$currentStrokeWidth}px</h4>
 					<input
 						type="range"
 						min="1"
 						max="20"
 						bind:value={$currentStrokeWidth}
 						class="stroke-slider"
+						class:dark={$darkMode}
 					/>
 				</div>
 			</div>
 		</div>
 
 		<!-- Center Panel: Canvas -->
-		<div class="panel canvas-panel">
+		<div class="panel canvas-panel" class:dark={$darkMode}>
 			{#each canvases as c, i}
-				<div class="canvas-container" bind:this={canvasRefs[i]}>
+				<div class="canvas-container" class:dark={$darkMode} bind:this={canvasRefs[i]}>
 					<button
-						class="btn-nobg"
+						class="btn-nobg" class:dark={$darkMode}
 						onclick={() => {
 							removeCanvas(c.id);
 							removeCanvasRef(i);
@@ -384,39 +386,39 @@
 		</div>
 
 		<!-- Right Panel: Vector Data & Stats -->
-		<div class="panel data-panel">
-			<div class="panel-content">
-				<h3>Utils ⚡</h3>
-				<h4>Add Page:</h4>
-				<div class="form-group action-buttons">
-					<button onclick={addNewPage} class="btn btn-primary" type="button"> ➕ New Page</button>
+		<div class="panel data-panel" class:dark={$darkMode}>
+			<div class="panel-content" class:dark={$darkMode}>
+				<h3 class:dark={$darkMode}>Utils ⚡</h3>
+				<h4 class:dark={$darkMode}>Add Page:</h4>
+				<div class="form-group action-buttons" class:dark={$darkMode}>
+					<button onclick={addNewPage} class="btn btn-primary" class:dark={$darkMode} type="button"> ➕ New Page</button>
 				</div>
-				<div class="form-group action-buttons">
-					<button onclick={downloadPDF} class="btn btn-primary" type="button"> ➕ PDF </button>
+				<div class="form-group action-buttons" class:dark={$darkMode}>
+					<button onclick={downloadPDF} class="btn btn-primary" class:dark={$darkMode} type="button"> ➕ PDF </button>
 				</div>
-				<h4>Add Behavior:</h4>
-				<div class="form-group action-buttons">
-					<button class="btn btn-primary" type="button" onclick={addBehavior}>
+				<h4 class:dark={$darkMode}>Add Behavior:</h4>
+				<div class="form-group action-buttons" class:dark={$darkMode}>
+					<button class="btn btn-primary" class:dark={$darkMode} type="button" onclick={addBehavior}>
 						💥 Add a behavior</button
 					>
 				</div>
-				<h4>Invitation:</h4>
-				<div class="form-group action-buttons">
-					<button class="btn btn-primary" onclick={createInvitation}> 🔗 Create Invitation</button>
+				<h4 class:dark={$darkMode}>Invitation:</h4>
+				<div class="form-group action-buttons" class:dark={$darkMode}>
+					<button class="btn btn-primary" class:dark={$darkMode} onclick={createInvitation}> 🔗 Create Invitation</button>
 				</div>
 
-				<div class="user-list">
+				<div class="user-list" class:dark={$darkMode}>
 					{#each Object.values($users) as user}
 						{#if user.userId !== userId}
-							<div class="user-item" title={`User ID: ${user.userId}, Color: ${user.color}`}>
+							<div class="user-item" class:dark={$darkMode} title={`User ID: ${user.userId}, Color: ${user.color}`}>
 								<div
-									class="user-color-indicator"
+									class="user-color-indicator" class:dark={$darkMode}
 									style="background-color: {user.color}"
 									aria-label={`Color for user ${user.userId}`}
 								></div>
-								<div class="user-text">
-									<p class="user-id" title={user.userId}>{user.userId}</p>
-									<p class="user-color" title={user.color}>{user.color}</p>
+								<div class="user-text" class:dark={$darkMode}>
+									<p class="user-id" class:dark={$darkMode} title={user.userId}>{user.userId}</p>
+									<p class="user-color" class:dark={$darkMode} title={user.color}>{user.color}</p>
 								</div>
 							</div>
 						{/if}
@@ -434,33 +436,33 @@
 />
 
 {#if $showBehaviorModal}
-	<div class="modal-backdrop">
-		<div class="modal">
-			<h3>Select an action</h3>
+	<div class="modal-backdrop" class:dark={$darkMode}>
+		<div class="modal" class:dark={$darkMode}>
+			<h3 class:dark={$darkMode}>Select an action</h3>
 
-			<select bind:value={selectedAction}>
+			<select bind:value={selectedAction} class:dark={$darkMode}>
 				{#each availableActions as action}
-					<option value={action.value}>{action.label}</option>
+					<option class:dark={$darkMode} value={action.value}>{action.label}</option>
 				{/each}
 			</select>
 
 			{#if selectedAction === 'goto'}
-				<div class="form-group" style="margin-top: 12px;">
-					<label for="gotoPage" class="form-label">Go to page number:</label>
+				<div class="form-group" class:dark={$darkMode} style="margin-top: 12px;">
+					<label for="gotoPage" class="form-label" class:dark={$darkMode}>Go to page number:</label>
 					<input
 						id="gotoPage"
 						type="number"
 						min="1"
 						bind:value={gotoPageNumber}
-						class="number-input"
+						class="number-input" class:dark={$darkMode}
 						style="width: 100%; padding: 6px 10px; border-radius: 8px; border: 2px solid #ddd; font-size: 1rem;"
 					/>
 				</div>
 			{/if}
 
-			<div class="modal-buttons">
-				<button class="btn btn-primary" onclick={confirmBehavior}>Apply</button>
-				<button class="btn" onclick={() => showBehaviorModal.set(false)}>Cancel</button>
+			<div class="modal-buttons" class:dark={$darkMode}>
+				<button class="btn btn-primary" class:dark={$darkMode} onclick={confirmBehavior}>Apply</button>
+				<button class="btn" class:dark={$darkMode} onclick={() => showBehaviorModal.set(false)}>Cancel</button>
 			</div>
 		</div>
 	</div>
@@ -496,10 +498,20 @@
 		margin-bottom: 16px;
 		font-size: 1.4rem;
 		font-weight: 600;
-		color: var(--color-light);
+		color: var(--text-color-light),
 		border-bottom: 2px solid #eee;
 		padding-bottom: 8px;
 	}
+
+    .modal h3.dark {
+        margin-top: 0;
+        margin-bottom: 16px;
+        font-size: 1.4rem;
+        font-weight: 600;
+        color: var(--text-color-dark);
+        border-bottom: 2px solid #eee;
+        padding-bottom: 8px;
+    }
 
 	.modal select {
 		width: 100%;
@@ -589,7 +601,7 @@
 	}
 
 	.app-header h1 {
-		color: var(--color-light);
+		color: var(--text-color-light);
 		font-size: 2.2rem;
 		background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 		-webkit-background-clip: text;
@@ -597,6 +609,16 @@
 		background-clip: text;
 		margin: 0 auto;
 	}
+
+    .app-header h1.dark {
+        color: var(--text-color-dark);
+        font-size: 2.2rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin: 0 auto;
+    }
 
 	.app-content {
 		display: grid;
@@ -638,10 +660,19 @@
 		text-align: center;
 		margin: 0 0 15px 0;
 		font-size: 1.5rem;
-		color: var(--color-light);
+		color: var(--text-color-light);
 		border-bottom: 2px solid #eee;
 		padding-bottom: 10px;
 	}
+
+    .panel-content h3.dark {
+        text-align: center;
+        margin: 0 0 15px 0;
+        font-size: 1.5rem;
+        color: var(--text-color-dark);
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+    }
 
 	.canvas-container {
         flex: 1 1 100%;
@@ -661,9 +692,16 @@
 	.tools-panel h3,
 	.data-panel h3 {
 		margin: 0 0 20px 0;
-		color: var(--color-light);
+		color: var(--text-color-light);
 		font-size: 1.3rem;
 	}
+
+    .tools-panel h3,
+    .data-panel h3 {
+        margin: 0 0 20px 0;
+        color: var(--text-color-dark);
+        font-size: 1.3rem;
+    }
 
 	.form-group {
 		margin-bottom: 20px;
@@ -807,9 +845,15 @@
 
 	.data-panel h4 {
 		margin: 0 0 12px 0;
-		color: #333;
+		color: var(--text-color-light);
 		font-size: 1.1rem;
 	}
+
+    .data-panel h4.dark {
+        margin: 0 0 12px 0;
+        color: var(--text-color-dark);
+        font-size: 1.1rem;
+    }
 
 	.user-list {
 		display: flex;

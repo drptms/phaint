@@ -1,6 +1,6 @@
 <main class:dark={$darkMode}>
 	<section class="hero">
-		<div class="hero-left">
+		<div class="hero-left" class:dark={$darkMode}>
 			<h1>
 				Welcome to <span class="brand">Phaint</span>
 			</h1>
@@ -53,7 +53,7 @@
         justify-content: center;
     }
     main.dark {
-        background: var(--bg-dark);
+        background: transparent;
     }
     .hero {
         width: 100%;
@@ -88,6 +88,12 @@
         line-height: 1.08;
         letter-spacing: -0.03em;
     }
+    .hero-left h1 {
+        color: var(--text-color-light);
+    }
+    .hero-left.dark h1 {
+		color: #eee;
+    }
     h1 .brand {
         display: inline-block;
         background: var(--brand-grad);
@@ -95,9 +101,10 @@
         -webkit-text-fill-color: transparent;
         background-clip: text;
         text-fill-color: transparent;
+	    color: var(--text-color-light);
     }
     .dark h1 .brand {
-        background: linear-gradient(90deg, #43cbff, #ffe08b 70%, #ffb6c1 99%);
+        color: linear-gradient(90deg, #43cbff, #ffe08b 70%, #ffb6c1 99%);
     }
     .hero p {
         font-size: 1.23rem;
