@@ -276,44 +276,6 @@ function hexToRgbNormalized(hex: string): { r: number; g: number; b: number } {
 	};
 }
 
-// function addLinkAnnotation(
-// 	page: PDFPage,
-// 	url: string,
-// 	rect: [number, number, number, number],
-// ) {
-//
-// 	let dict = PDFDict.withContext(page.doc.context);
-// 	dict.set(PDFName.of("Type"), PDFName.of("Actions"));
-// 	dict.set(PDFName.of('S'), PDFName.of('URI'));
-// 	dict.set(PDFName.of('URI'), PDFString.of(url));
-//
-// 	const rectArray = PDFArray.withContext(page.doc.context);
-// 	rect.forEach(n => rectArray.push(PDFNumber.of(n)));
-//
-// 	const linkAnnotation = page.doc.context.obj({
-// 		Type: 'Annot',
-// 		Subtype: 'Link',
-// 		Rect: rectArray,
-// 		Border: [0, 0, 0],
-// 		A: dict
-// 	});
-//
-// 	const annotsRef = page.node.Annots(); // call the getter function
-// 	const annotsArray = annotsRef ? page.node.context.lookup(annotsRef) : undefined;
-//
-// 	let annots = [];
-// 	if (annotsArray && Array.isArray(annotsArray)) {
-// 		annots = annotsArray.slice();
-// 	}
-//
-// 	const newAnnots = [...annots, linkAnnotation];
-//
-// 	page.node.set(
-// 		PDFName.of('Annots'),
-// 		page.node.context.obj(newAnnots),
-// 	);
-// }
-
 function createUriActionDict(url: string, context: PDFContext): PDFDict {
 	const dict = PDFDict.withContext(context);
 	dict.set(PDFName.of('Type'), PDFName.of('Action'));

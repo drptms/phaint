@@ -31,7 +31,7 @@
   <div class="modal-form" role="dialog" aria-modal="true" aria-labelledby="modal-title">
     <h2 id="modal-title">Invitation Link</h2>
 
-    <div class="link-container" tabindex="0" title="Invitation link (click to select)">
+    <div class="link-container" tabindex="-1" title="Invitation link (click to select)">
       {link}
     </div>
 
@@ -82,29 +82,6 @@
         margin-top: 0.4rem;
         letter-spacing: -0.03em;
         text-shadow: 0 2px 16px rgb(124,96,209, 0.15);
-    }
-    label {
-        color: #d5d2e0;
-        margin-bottom: 0.1rem;
-        font-size: 1rem;
-        font-weight: 500;
-    }
-    input[type="text"] {
-        background: rgba(255,255,255,0.06);
-        border-radius: 12px;
-        border: none;
-        outline: none;
-        color: #fff;
-        padding: 0.85rem 1.1rem;
-        font-size: 1.06rem;
-        box-shadow: inset 1px 2px 7px 0 rgba(70,40,110,0.07), 0px 1px 2px 0 rgba(70,40,110,0.04);
-        margin-top: 0.15rem;
-        margin-bottom: 1.5rem;
-        transition: box-shadow 0.23s;
-    }
-    input[type="text"]:focus {
-        box-shadow: 0 0 0 2px #ce63fa, 0 2px 16px 0 rgba(226, 138, 255, 0.11);
-        background: rgba(255,255,255,0.12);
     }
     .modal-buttons {
         display: flex;

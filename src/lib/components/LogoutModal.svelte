@@ -95,19 +95,6 @@
         gap: 16px;
     }
 
-    input[type="text"],
-    input[type="password"] {
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 12px;
-        padding: 16px 18px;
-        color: white;
-        font-size: 16px;
-        font-family: inherit;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
-    }
-
     ::placeholder {
         color: rgba(255, 255, 255, 0.5);
     }
